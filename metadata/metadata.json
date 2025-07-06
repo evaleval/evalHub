@@ -23,6 +23,7 @@
                 "cuda_version": "11.7",
                 "torch_version": "2.0.1",
                 "num_gpus": 4,
+                "instance_size": "400mb",
                 "other_system_info": {
                     "os": "Ubuntu 22.04"
                 }
@@ -33,7 +34,14 @@
                     "dataset": "SQuADv2",
                     "pre_processing_recipe": "tokenize",
                     "post_processing_recipe": "span_adjust",
-                    "analysis_method": "F1_score"
+                    "metric": {
+                        "metric_id": "m-001",
+                        "name": "F1 Score",
+                        "description": "Harmonic mean of precision and recall",
+                        "parameters": {
+                            "beta": 1
+                        }
+                    }
                 }
             ],
             "evaluation_query_metadata": [

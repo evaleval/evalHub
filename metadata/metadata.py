@@ -1,9 +1,8 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from utils import save_json
 import json
-
 
 class ModelCheckpointMetadata(BaseModel):
     checkpoint_name: str
@@ -11,24 +10,31 @@ class ModelCheckpointMetadata(BaseModel):
     num_layers: int
     other_tags: Dict[str, Any] = Field(default_factory=dict)
 
-class InterventionMetadata(BaseModel):
+class OptimizationMetadata(BaseModel):
     type: str
     bitwidth: int
     algorithm: str
     calibration_dataset: str
 
-class SystemMetadata(BaseModel):
+class MachineInfo(BaseModel):
     cuda_version: str
     torch_version: str
     num_gpus: int
+    instance_size: str
     other_system_info: Dict[str, Any] = Field(default_factory=dict)
+
+class Metric(BaseModel):
+    metric_id: str
+    name: str
+    description: Optional[str] = None
+    parameters: Dict[str, Any] = Field(default_factory=dict)
 
 class Eval(BaseModel):
     eval_id: str
     dataset: str
     pre_processing_recipe: str
     post_processing_recipe: str
-    analysis_method: str
+    metric: Metric
 
 class EvaluationQueryMetadata(BaseModel):
     query_id: str
@@ -40,8 +46,8 @@ class EvaluationQueryMetadata(BaseModel):
 class Experiment(BaseModel):
     experiment_id: str
     model_checkpoint_metadata: ModelCheckpointMetadata
-    intervention_metadata: InterventionMetadata
-    system_metadata: SystemMetadata
+    optimization_metadata: OptimizationMetadata
+    system_metadata: MachineInfo
     evals_selected: List[Eval]
     evaluation_query_metadata: List[EvaluationQueryMetadata]
 
@@ -51,8 +57,16 @@ class Study(BaseModel):
     description: str
     experiments: List[Experiment]
 
-# Instantiate with a fixed timestamp for reproducibility
+
 fixed_timestamp = datetime(2025, 7, 6, 12, 0, 0, tzinfo=timezone.utc)
+
+
+f1_metric = Metric(
+    metric_id="m-001",
+    name="F1 Score",
+    description="Harmonic mean of precision and recall",
+    parameters={"beta": 1}
+)
 
 study = Study(
     study_id="study-001",
@@ -67,16 +81,17 @@ study = Study(
                 num_layers=12,
                 other_tags={"optimizer":"Adam"}
             ),
-            intervention_metadata=InterventionMetadata(
+            optimization_metadata=OptimizationMetadata(
                 type="quantization",
                 bitwidth=8,
                 algorithm="post-training",
                 calibration_dataset="wiki_text"
             ),
-            system_metadata=SystemMetadata(
+            system_metadata=MachineInfo(
                 cuda_version="11.7",
                 torch_version="2.0.1",
                 num_gpus=4,
+                instance_size="400mb",
                 other_system_info={"os":"Ubuntu 22.04"}
             ),
             evals_selected=[
@@ -85,7 +100,7 @@ study = Study(
                     dataset="SQuADv2",
                     pre_processing_recipe="tokenize",
                     post_processing_recipe="span_adjust",
-                    analysis_method="F1_score"
+                    metric=f1_metric
                 )
             ],
             evaluation_query_metadata=[
@@ -100,7 +115,6 @@ study = Study(
         )
     ]
 )
-
 
 json_output = study.model_dump_json(indent=2, by_alias=True, exclude_none=True)
 data = json.loads(json_output)
