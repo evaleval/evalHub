@@ -18,3 +18,7 @@ dependencies = [
 dev = [
     "datamodel-code-generator>=0.31.2",
 ]
+
+[tool.setuptools.packages.find]
+include = ["helm*", "schema*", "common*", "config*"]
+exclude = ["tests*"]
