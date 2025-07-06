@@ -1,13 +1,15 @@
+from typing import List
 from helm.benchmark.adaptation.scenario_state import ScenarioState
 from helm.benchmark.run_spec import RunSpec
 from dacite import from_dict
+from pathlib import Path
 
 from schema.eval_types import EvaluationResult, ModelInfo, Configuration, InferenceSettings, GenerationArgs, Quantization, BitPrecision, Method, Model, PromptConfig, Instance, Output, Evaluation
 from schema import SCHEMA_VERSION
 
 from common.adapter import BaseEvaluationAdapter, AdapterMetadata, SupportedLibrary
 from common.utils import detect_family
-from .utils import detect_prompt_class
+from helm.utils import detect_prompt_class
 
 class HELMAdapter(BaseEvaluationAdapter):
     """
@@ -33,8 +35,8 @@ class HELMAdapter(BaseEvaluationAdapter):
     def transform_from_directory(self, dir_path):
         super().transform_from_directory(dir_path)
         
-        scenario_state_dict = self._load_file(f'{dir_path}/{self.SCENARIO_STATE_FILE}')
-        run_spec_dict = self._load_file(f'{dir_path}/{self.RUN_SPEC_FILE}')
+        scenario_state_dict = self._load_file(Path(f'{dir_path}/{self.SCENARIO_STATE_FILE}'))
+        run_spec_dict = self._load_file(Path(f'{dir_path}/{self.RUN_SPEC_FILE}'))
     
         # Load raw_data object into a ScenarioState
         scenario_state = from_dict(data_class=ScenarioState, data=scenario_state_dict)
@@ -71,26 +73,33 @@ class HELMAdapter(BaseEvaluationAdapter):
         # 2.1. PromptClass
         prompt_class = detect_prompt_class(adapter_spec.method)
 
-        # 3. Instance
-        # TODO:
-        
-        # 4. Output
-        # TODO:
+        evaluation_results: List[EvaluationResult] = []
+        for request_state in scenario_state.request_states:
+            # 3. Instance
+            # TODO:
+            
+            # 4. Output
+            # TODO:
 
-        # 5. Evaluation
-        # TODO:
+            # 5. Evaluation
+            # TODO:
         
-        return EvaluationResult(
-            schema_version=SCHEMA_VERSION,
-            evaluation_id=run_spec.name,
-            model=Model(
-                model_info=model_info,
-                configuration=configuration,
-                inference_settings=inference_settings,
-            ),
-            prompt_config=PromptConfig(prompt_class=prompt_class)
-        )
+            evaluation_results.append(EvaluationResult(
+                schema_version=SCHEMA_VERSION,
+                evaluation_id=run_spec.name,
+                model=Model(
+                    model_info=model_info,
+                    configuration=configuration,
+                    inference_settings=inference_settings,
+                ),
+                prompt_config=PromptConfig(prompt_class=prompt_class)
+            ))
+        
+        return evaluation_results
     
+    def _transform_single(self, raw_data):
+        # TODO:
+        pass
     
 if __name__ == "__main__":
     adapter = HELMAdapter()
