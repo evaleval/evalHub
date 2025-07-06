@@ -1,0 +1,54 @@
+{
+    "study_id": "study-001",
+    "name": "Quantization Study",
+    "description": "Assessing 8-bit quantized BERT",
+    "experiments": [
+        {
+            "experiment_id": "exp-123",
+            "model_checkpoint_metadata": {
+                "checkpoint_name": "bert-base-uncased",
+                "precision": 16.0,
+                "num_layers": 12,
+                "other_tags": {
+                    "optimizer": "Adam"
+                }
+            },
+            "intervention_metadata": {
+                "type": "quantization",
+                "bitwidth": 8,
+                "algorithm": "post-training",
+                "calibration_dataset": "wiki_text"
+            },
+            "system_metadata": {
+                "cuda_version": "11.7",
+                "torch_version": "2.0.1",
+                "num_gpus": 4,
+                "other_system_info": {
+                    "os": "Ubuntu 22.04"
+                }
+            },
+            "evals_selected": [
+                {
+                    "eval_id": "eval-squad",
+                    "dataset": "SQuADv2",
+                    "pre_processing_recipe": "tokenize",
+                    "post_processing_recipe": "span_adjust",
+                    "analysis_method": "F1_score"
+                }
+            ],
+            "evaluation_query_metadata": [
+                {
+                    "query_id": "q-0001",
+                    "timestamp": "2025-07-06T12:00:00Z",
+                    "input": {
+                        "question": "What is X?"
+                    },
+                    "output": {
+                        "answer": "Y"
+                    },
+                    "experiment_metadata_ref": "exp-123"
+                }
+            ]
+        }
+    ]
+}
