@@ -1,0 +1,22 @@
+[project]
+name = "evalcard-infrastructure"
+version = "0.1.0"
+description = "A unified and extensible framework for running and organizing evaluations across multiple LLM evaluation tools."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.3.1",
+    "openai>=1.93.0",
+    "pandas>=2.3.0",
+    "pydantic>=2.11.7",
+    "requests>=2.32.4",
+    "transformers>=4.53.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=4.2.0",
+    "pylint>=3.3.7",
+    "pytest>=8.4.1",
+    "ruff>=0.12.2",
+]
