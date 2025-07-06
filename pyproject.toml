@@ -12,3 +12,11 @@ dependencies = [
     "requests>=2.32.4",
     "transformers>=4.53.1",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=4.2.0",
+    "pylint>=3.3.7",
+    "pytest>=8.4.1",
+    "ruff>=0.12.2",
+]
