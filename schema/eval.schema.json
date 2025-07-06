@@ -202,8 +202,7 @@
             "type": "object",
             "description": "Configuration of the prompt template and formatting",
             "required": [
-                "prompt_class",
-                "dimensions"
+                "prompt_class"
             ],
             "properties": {
                 "prompt_class": {

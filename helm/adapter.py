@@ -1,13 +1,21 @@
-from typing import Any
+from helm.benchmark.adaptation.scenario_state import ScenarioState
+from helm.benchmark.run_spec import RunSpec
+from dacite import from_dict
 
-from schema.eval_types import EvaluationResult
+from schema.eval_types import EvaluationResult, ModelInfo, Configuration, InferenceSettings, GenerationArgs, Quantization, BitPrecision, Method, Model, PromptConfig, Instance, Output, Evaluation
+from schema import SCHEMA_VERSION
+
 from common.adapter import BaseEvaluationAdapter, AdapterMetadata, SupportedLibrary
+from common.utils import detect_family
+from .utils import detect_prompt_class
 
 class HELMAdapter(BaseEvaluationAdapter):
     """
     Adapter for transforming evaluation outputs from the HELM library
     into the unified schema format.
     """
+    SCENARIO_STATE_FILE = 'scenario_state.json'
+    RUN_SPEC_FILE = 'run_spec.json'
 
     @property
     def metadata(self) -> AdapterMetadata:
@@ -21,26 +29,83 @@ class HELMAdapter(BaseEvaluationAdapter):
     @property
     def supported_library(self) -> SupportedLibrary:
         return SupportedLibrary.HELM
+    
+    def transform_from_directory(self, dir_path):
+        super().transform_from_directory(dir_path)
+        
+        scenario_state_dict = self._load_file(f'{dir_path}/{self.SCENARIO_STATE_FILE}')
+        run_spec_dict = self._load_file(f'{dir_path}/{self.RUN_SPEC_FILE}')
+    
+        # Load raw_data object into a ScenarioState
+        scenario_state = from_dict(data_class=ScenarioState, data=scenario_state_dict)
+        adapter_spec = scenario_state.adapter_spec
 
-    def _transform_single(self, raw_data: Any) -> EvaluationResult:
-        # Transform HELM data to unified schema
+        # Load raw_data object into a RunSpec
+        run_spec = from_dict(data_class=RunSpec, data=run_spec_dict)
 
+        # Construct the EvaluationResult components
+        # 1. Model
+        # 1.1. ModelInfo
+        model_info = ModelInfo(
+            name=adapter_spec.model,
+            family=detect_family(adapter_spec.model),
+        )
+        # 1.2. Configuration
+        configuration = Configuration(
+            context_window=1, # FIXME: HELM does not provide context window size, so we set it to 1. A simple fix is to get it from tokenizer?
+        )
+        # 1.3. InferenceSettings
+        quantization = Quantization( # FIXME: HELM does not provide quantization info, so we set it to None default
+            bit_precision=BitPrecision.none,
+            method=Method.None_,
+        )
+        inference_settings = InferenceSettings(
+            quantization=quantization,
+            generation_args=GenerationArgs(
+                temperature=adapter_spec.temperature,
+                stop_sequences=adapter_spec.stop_sequences,
+            )
+        )
+        
+        # 2. PromptConfig
+        # 2.1. PromptClass
+        prompt_class = detect_prompt_class(adapter_spec.method)
+
+        # 3. Instance
         # TODO:
+        
+        # 4. Output
+        # TODO:
+
+        # 5. Evaluation
+        # TODO:
+        
         return EvaluationResult(
-            # Populate with transformed data
-            schema_version="0.0.1",
+            schema_version=SCHEMA_VERSION,
+            evaluation_id=run_spec.name,
+            model=Model(
+                model_info=model_info,
+                configuration=configuration,
+                inference_settings=inference_settings,
+            ),
+            prompt_config=PromptConfig(prompt_class=prompt_class)
         )
     
     
-# if __name__ == "__main__":
-#     adapter = HELMAdapter()
-#     print(adapter.metadata)
-#     print(adapter.supported_library)
+if __name__ == "__main__":
+    adapter = HELMAdapter()
+    print(adapter.metadata)
+    print(adapter.supported_library)
     
-#     # Example raw data (to be replaced with actual HELM output)
-#     raw_data = {}
-#     try:
-#         result = adapter._transform_single(raw_data)
-#         print(result)
-#     except Exception as e:
-#         print(f"Error transforming data: {e}")
+    # Example raw data (to be replaced with actual HELM output)
+    # raw_data = {}
+    # try:
+    #     result = adapter._transform_single(raw_data)
+    #     print(result)
+    # except Exception as e:
+    #     print(f"Error transforming data: {e}")
+
+    # Transform data
+    output_dir_path = '/home/hoang/evaleval/benchmark_output/runs/my-suite/commonsense:dataset=hellaswag,method=multiple_choice_joint,model=eleutherai_pythia-1b-v0'
+    result = adapter.transform_from_directory(output_dir_path)
+    print(result)

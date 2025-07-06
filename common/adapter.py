@@ -83,9 +83,6 @@ class BaseEvaluationAdapter(ABC):
         Returns:
             Transformed data in unified schema format
         """
-        if not self.can_handle(data):
-            raise AdapterError(f"Adapter {self.metadata.name} cannot handle this data format")
-        
         try:
             # Handle both single records and lists
             if isinstance(data, list):
@@ -123,6 +120,26 @@ class BaseEvaluationAdapter(ABC):
             return self.transform(data)
         except Exception as e:
             raise AdapterError(f"Failed to load file {file_path}: {str(e)}")
+        
+    @abstractmethod
+    def transform_from_directory(self, dir_path: Union[str, Path]) -> Union[EvaluationResult, List[EvaluationResult]]:
+        """
+        Load and transform evaluation data from all files in a directory.
+        
+        Args:
+            dir_path: Path to the directory containing evaluation output files
+            
+        Returns:
+            Transformed data in unified schema format
+        """
+        dir_path = Path(dir_path)
+        
+        if not dir_path.is_dir():
+            raise AdapterError(f"Path is not a directory: {dir_path}")
+        
+        # Subclass must implement this part
+        # e.g., how to iterate through files and process them
+        pass
 
     def _load_file(self, file_path: Path) -> Any:
         """
