@@ -7,3 +7,7 @@ To generate or update Python types from the JSON schema, you can run the followi
 ```bash
 datamodel-codegen --input eval.schema.json --output eval_types.py --class-name EvaluationResult --output-model-type pydantic_v2.BaseModel
 ```
+
+## Example Data
+
+Please refer to [this file](./eval.example.json) for a minimal data example adhering to the evaluation format schema.
