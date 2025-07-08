@@ -1,10 +1,11 @@
 from typing import List
 from helm.benchmark.adaptation.scenario_state import ScenarioState
+from helm.benchmark.scenarios.scenario import Scenario
 from helm.benchmark.run_spec import RunSpec
 from dacite import from_dict
 from pathlib import Path
 
-from schema.eval_types import EvaluationResult, ModelInfo, Configuration, InferenceSettings, GenerationArgs, Quantization, BitPrecision, Method, Model, PromptConfig, Instance, Output, Evaluation
+from schema.eval_types import EvaluationResult, ModelInfo, Configuration, InferenceSettings, GenerationArgs, Quantization, BitPrecision, Method, Model, PromptConfig, Instance, Output, Evaluation, TaskType, PromptClass, SampleIdentifier
 from schema import SCHEMA_VERSION
 
 from common.adapter import BaseEvaluationAdapter, AdapterMetadata, SupportedLibrary
@@ -18,6 +19,7 @@ class HELMAdapter(BaseEvaluationAdapter):
     """
     SCENARIO_STATE_FILE = 'scenario_state.json'
     RUN_SPEC_FILE = 'run_spec.json'
+    SCENARIO_FILE = 'scenario.json'
 
     @property
     def metadata(self) -> AdapterMetadata:
@@ -37,13 +39,17 @@ class HELMAdapter(BaseEvaluationAdapter):
         
         scenario_state_dict = self._load_file(Path(f'{dir_path}/{self.SCENARIO_STATE_FILE}'))
         run_spec_dict = self._load_file(Path(f'{dir_path}/{self.RUN_SPEC_FILE}'))
-    
-        # Load raw_data object into a ScenarioState
+        scenario_dict = self._load_file(Path(f'{dir_path}/{self.SCENARIO_FILE}'))
+
+        # Load raw data object into a ScenarioState
         scenario_state = from_dict(data_class=ScenarioState, data=scenario_state_dict)
         adapter_spec = scenario_state.adapter_spec
 
-        # Load raw_data object into a RunSpec
+        # Load raw data object into a RunSpec
         run_spec = from_dict(data_class=RunSpec, data=run_spec_dict)
+
+        # Load raw data object into a Scenario
+        scenario = from_dict(data_class=Scenario, data=scenario_dict)
 
         # Construct the EvaluationResult components
         # 1. Model
@@ -76,13 +82,55 @@ class HELMAdapter(BaseEvaluationAdapter):
         evaluation_results: List[EvaluationResult] = []
         for request_state in scenario_state.request_states:
             # 3. Instance
-            # TODO:
+            # 3.1. SampleIdentifier
+            sample_identifier = SampleIdentifier(
+                dataset_name=scenario.name,
+                hf_repo="", # FIXME: use HF repo if available
+                hf_split=request_state.instance.split,
+                hf_index=-1,  # FIXME: use actual index if available
+            )
+            
+            # 3.2. ClassificationFields (required for classification tasks)
+            classification_fields = {}
+            if prompt_class == PromptClass.MultipleChoice: 
+                output_mapping_dict = request_state.output_mapping or {}
+                choices = [{"id": k, "text": v} for k, v in output_mapping_dict.items()]
+
+                # Extract the first correct reference
+                references = request_state.instance.references
+                ground_truth = {}
+                for i, ref in enumerate(references):
+                    if "correct" in ref.get("tags", []):
+                        ground_truth = {
+                            "id": str(i),
+                            "text": ref["output"]["text"]
+                        }
+                        break
+
+                classification_fields = {
+                    "full_input": request_state.request.prompt,
+                    "question": request_state.instance.input.text,
+                    "choices": choices,
+                    "ground_truth": ground_truth,
+                }
+            
+            instance = Instance(
+                task_type=TaskType.classification if prompt_class == PromptClass.MultipleChoice else TaskType.generation,
+                raw_input=request_state.instance.input.text,
+                language='en',  # FIXME: other languages?
+                sample_identifier=sample_identifier,
+                classification_fields=classification_fields,
+            )
             
             # 4. Output
-            # TODO:
+            output = Output(
+                response=request_state.result.completions[0].text
+            )
 
             # 5. Evaluation
             # TODO:
+            evaluation = Evaluation(
+            )
         
             evaluation_results.append(EvaluationResult(
                 schema_version=SCHEMA_VERSION,
@@ -92,7 +140,10 @@ class HELMAdapter(BaseEvaluationAdapter):
                     configuration=configuration,
                     inference_settings=inference_settings,
                 ),
-                prompt_config=PromptConfig(prompt_class=prompt_class)
+                prompt_config=PromptConfig(prompt_class=prompt_class),
+                instance=instance,
+                output=output,
+                evaluation=evaluation,
             ))
         
         return evaluation_results
