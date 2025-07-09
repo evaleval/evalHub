@@ -1,16 +1,15 @@
 from typing import List
 from helm.benchmark.adaptation.scenario_state import ScenarioState
-from helm.benchmark.scenarios.scenario import Scenario
 from helm.benchmark.run_spec import RunSpec
 from dacite import from_dict
 from pathlib import Path
 
-from schema.eval_types import EvaluationResult, ModelInfo, Configuration, InferenceSettings, GenerationArgs, Quantization, BitPrecision, Method, Model, PromptConfig, Instance, Output, Evaluation, TaskType, PromptClass, SampleIdentifier
+from schema.eval_types import EvaluationResult, ModelInfo, Configuration, InferenceSettings, GenerationArgs, Quantization, BitPrecision, Method, Model, PromptConfig, Instance, Output, Evaluation, TaskType, PromptClass, SampleIdentifier, EvaluationMethod
 from schema import SCHEMA_VERSION
 
 from common.adapter import BaseEvaluationAdapter, AdapterMetadata, SupportedLibrary
-from common.utils import detect_family
-from helm.utils import detect_prompt_class
+from common.utils import detect_family, detect_hf_split
+from helm.utils import detect_prompt_class, get_adapter_class_from_method_string
 
 class HELMAdapter(BaseEvaluationAdapter):
     """
@@ -39,7 +38,7 @@ class HELMAdapter(BaseEvaluationAdapter):
         
         scenario_state_dict = self._load_file(Path(f'{dir_path}/{self.SCENARIO_STATE_FILE}'))
         run_spec_dict = self._load_file(Path(f'{dir_path}/{self.RUN_SPEC_FILE}'))
-        scenario_dict = self._load_file(Path(f'{dir_path}/{self.SCENARIO_FILE}'))
+        scenario_dict = self._load_file(Path(f'{dir_path}/{self.SCENARIO_FILE}')) # We don't load into Scenario instance as it is an abstract class
 
         # Load raw data object into a ScenarioState
         scenario_state = from_dict(data_class=ScenarioState, data=scenario_state_dict)
@@ -47,9 +46,6 @@ class HELMAdapter(BaseEvaluationAdapter):
 
         # Load raw data object into a RunSpec
         run_spec = from_dict(data_class=RunSpec, data=run_spec_dict)
-
-        # Load raw data object into a Scenario
-        scenario = from_dict(data_class=Scenario, data=scenario_dict)
 
         # Construct the EvaluationResult components
         # 1. Model
@@ -84,28 +80,29 @@ class HELMAdapter(BaseEvaluationAdapter):
             # 3. Instance
             # 3.1. SampleIdentifier
             sample_identifier = SampleIdentifier(
-                dataset_name=scenario.name,
+                dataset_name=scenario_dict['name'],
                 hf_repo="", # FIXME: use HF repo if available
-                hf_split=request_state.instance.split,
+                hf_split=detect_hf_split(request_state.instance.split),
                 hf_index=-1,  # FIXME: use actual index if available
             )
             
+            # Extract ground truth: the first correct reference
+            # FIXME: need to modify the schema to support evaluation with more than one ground truth: https://crfm-helm.readthedocs.io/en/latest/code/#adding-new-scenarios
+            references = request_state.instance.references
+            ground_truth = {}
+            for i, ref in enumerate(references):
+                if "correct" in ref.tags:
+                    ground_truth = {
+                        "id": str(i),
+                        "text": ref.output.text,
+                    }
+                    break
+            
             # 3.2. ClassificationFields (required for classification tasks)
             classification_fields = {}
+            output_mapping_dict = request_state.output_mapping or {}
             if prompt_class == PromptClass.MultipleChoice: 
-                output_mapping_dict = request_state.output_mapping or {}
                 choices = [{"id": k, "text": v} for k, v in output_mapping_dict.items()]
-
-                # Extract the first correct reference
-                references = request_state.instance.references
-                ground_truth = {}
-                for i, ref in enumerate(references):
-                    if "correct" in ref.get("tags", []):
-                        ground_truth = {
-                            "id": str(i),
-                            "text": ref["output"]["text"]
-                        }
-                        break
 
                 classification_fields = {
                     "full_input": request_state.request.prompt,
@@ -128,8 +125,16 @@ class HELMAdapter(BaseEvaluationAdapter):
             )
 
             # 5. Evaluation
-            # TODO:
+            adapter = get_adapter_class_from_method_string(adapter_spec.method)
+            evaluation_method = EvaluationMethod(
+                method_name=adapter_spec.method,
+                description=adapter.__class__.__doc__, # Use the adapter's docstring as description
+            )
+            score = 0.0 # TODO: implement scoring logic using HELM
             evaluation = Evaluation(
+                evaluation_method=evaluation_method,
+                ground_truth=ground_truth["text"],
+                score=score,
             )
         
             evaluation_results.append(EvaluationResult(
