@@ -5,6 +5,8 @@ description = "A unified and extensible framework for running and organizing eva
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "crfm-helm>=0.5.6",
+    "dacite>=1.9.2",
     "numpy>=2.3.1",
     "openai>=1.93.0",
     "pandas>=2.3.0",
@@ -19,4 +21,9 @@ dev = [
     "pylint>=3.3.7",
     "pytest>=8.4.1",
     "ruff>=0.12.2",
+    "datamodel-code-generator>=0.31.2",
 ]
+
+[tool.setuptools.packages.find]
+include = ["helm*", "schema*", "common*", "config*"]
+exclude = ["tests*"]
