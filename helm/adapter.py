@@ -157,20 +157,3 @@ class HELMAdapter(BaseEvaluationAdapter):
         # TODO:
         pass
     
-if __name__ == "__main__":
-    adapter = HELMAdapter()
-    print(adapter.metadata)
-    print(adapter.supported_library)
-    
-    # Example raw data (to be replaced with actual HELM output)
-    # raw_data = {}
-    # try:
-    #     result = adapter._transform_single(raw_data)
-    #     print(result)
-    # except Exception as e:
-    #     print(f"Error transforming data: {e}")
-
-    # Transform data
-    output_dir_path = '/home/hoang/evaleval/benchmark_output/runs/my-suite/commonsense:dataset=hellaswag,method=multiple_choice_joint,model=eleutherai_pythia-1b-v0'
-    result = adapter.transform_from_directory(output_dir_path)
-    print(result)
