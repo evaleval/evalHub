@@ -211,3 +211,7 @@ __marimo__/
 
 
 .idea/
+
+# personal files
+*technical_architecture.md
+*PLAN.md
