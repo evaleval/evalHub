@@ -29,7 +29,15 @@ def infer_quantization(model_name_or_path: str):
 	"""
 	Returns (BitPrecision, Method) enums for the given HF model.
 	"""
-	cfg = AutoConfig.from_pretrained(model_name_or_path)
+	try:
+		cfg = AutoConfig.from_pretrained(model_name_or_path)
+	except Exception as e:
+		raise ValueError(
+			f"Failed to load model config for {model_name_or_path}: {e} \n"
+			"This may happen if you are using a HELM model name instead of HuggingFace model name in the adapter_spec.model field."
+			"For example, HELM uses 'meta/llama-3.1-8b-instruct' while HuggingFace uses meta-llama/llama-3.1-8b-instruct' \n"
+			"Please verify the model name and try again."
+		)
 	qcfg = getattr(cfg, "quantization_config", None)
 
 	if qcfg is None:
@@ -173,7 +181,12 @@ class HELMAdapter(BaseEvaluationAdapter):
 		)
 
 		# 1.3. InferenceSettings
-		precision, method = infer_quantization(adapter_spec.model)
+		try:
+			precision, method = infer_quantization(adapter_spec.model)
+		except Exception as e:
+			print(f"Error getting quantization: {e}")
+			precision = BitPrecision.none
+			method = Method.None_
 
 		quantization = Quantization(
 			bit_precision=precision,
@@ -356,7 +369,12 @@ class HELMAdapter(BaseEvaluationAdapter):
 		)
 
 		# 1.3. InferenceSettings
-		precision, method = infer_quantization(adapter_spec.model)
+		try:
+			precision, method = infer_quantization(adapter_spec.model)
+		except Exception as e:
+			print(f"Error getting quantization: {e}")
+			precision = BitPrecision.none
+			method = Method.None_
 
 		quantization = Quantization(
 			bit_precision=precision,
