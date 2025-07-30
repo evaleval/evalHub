@@ -25,5 +25,5 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["helm*", "schema*", "common*", "config*", "integrations*"]
+include = ["helm*", "schema*", "common*", "config*", "eval_tools*"]
 exclude = ["tests*"]

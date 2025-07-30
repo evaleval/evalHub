@@ -7,7 +7,7 @@ from typing import Any, List, Union
 from pathlib import Path
 import json
 
-from integrations.common.error import AdapterError, TransformationError
+from eval_tools.common.error import AdapterError, TransformationError
 
 @dataclass
 class AdapterMetadata:
