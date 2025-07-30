@@ -1,6 +1,7 @@
 import pytest
 from pathlib import Path
 from helm.adapter import HELMAdapter
+import json
 
 @pytest.fixture
 def adapter():
@@ -27,3 +28,21 @@ def test_transform_from_directory(adapter):
     assert all(r.model.model_info.name for r in results)
     assert all(r.instance.raw_input for r in results)
     assert len(results) > 0, "No results found in the output directory"
+
+def test_transform_single(adapter):
+    test_dir = Path(__file__).parent.resolve()
+    output_base_path = test_dir / 'data/helm/'
+    output_file_path = test_dir / 'data/helm/transform_helm_file_raw_data.json'
+
+    results = adapter._transform_single(output_file_path, base_dir=output_base_path)
+
+    assert isinstance(results, list)
+    assert all(hasattr(r, 'schema_version') for r in results)
+    assert all(r.model.model_info.name for r in results)
+    assert all(r.instance.raw_input for r in results)
+    assert len(results) > 0, "No results found in the output directory"
+
+if __name__ == "__main__":
+    # Create an adapter instance for direct execution
+    adapter = HELMAdapter()
+    test_transform_single(adapter)
