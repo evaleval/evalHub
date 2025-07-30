@@ -215,3 +215,5 @@ __marimo__/
 # personal files
 *technical_architecture.md
 *PLAN.md
+*personal_experimentation/
+*uv.lock

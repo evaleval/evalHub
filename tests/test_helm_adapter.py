@@ -31,9 +31,10 @@ def test_transform_from_directory(adapter):
 
 def test_transform_single(adapter):
     test_dir = Path(__file__).parent.resolve()
+    output_base_path = test_dir / 'data/helm/'
     output_file_path = test_dir / 'data/helm/transform_helm_file_raw_data.json'
 
-    results = adapter._transform_single(output_file_path)
+    results = adapter._transform_single(output_file_path, base_dir=output_base_path)
 
     assert isinstance(results, list)
     assert all(hasattr(r, 'schema_version') for r in results)
