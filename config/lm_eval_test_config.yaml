@@ -1,0 +1,10 @@
+model: hf
+model_args: pretrained=gpt2,dtype=float32
+tasks:
+  - hellaswag
+batch_size: 2
+num_fewshot: 0
+output_dir: test_outputs
+limit: 3
+device: cpu
+seed: 42
