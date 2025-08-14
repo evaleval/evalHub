@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from eval_tools.helm.adapter import HELMAdapter
+from eval_converters.helm.adapter import HELMAdapter
 
 @pytest.fixture
 def adapter():
