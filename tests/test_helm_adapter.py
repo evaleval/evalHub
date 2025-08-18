@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from helm.adapter import HELMAdapter
+from eval_converters.helm.adapter import HELMAdapter
 import json
 
 @pytest.fixture

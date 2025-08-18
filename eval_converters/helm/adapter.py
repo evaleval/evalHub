@@ -16,9 +16,9 @@ from pathlib import Path
 from schema.eval_types import EvaluationResult, ModelInfo, Configuration, InferenceSettings, GenerationArgs, Quantization, BitPrecision, Method, Model, PromptConfig, Instance, Output, Evaluation, TaskType, PromptClass, SampleIdentifier, EvaluationMethod
 from schema import SCHEMA_VERSION
 
-from common.adapter import BaseEvaluationAdapter, AdapterMetadata, SupportedLibrary
-from common.utils import detect_family, detect_hf_split
-from helm.utils import detect_prompt_class, get_adapter_class_from_method_string
+from eval_converters.common.adapter import BaseEvaluationAdapter, AdapterMetadata, SupportedLibrary
+from eval_converters.common.utils import detect_family, detect_hf_split
+from .utils import detect_prompt_class, get_adapter_class_from_method_string
 
 from transformers import AutoConfig
 
