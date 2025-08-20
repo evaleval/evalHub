@@ -34,6 +34,7 @@ class Architecture(Enum):
     transformer = 'transformer'
     moe = 'moe'
     ssm = 'ssm'
+    rnn = 'rnn'
     NoneType_None = None
 
 
