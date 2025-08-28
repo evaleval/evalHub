@@ -5,14 +5,18 @@ description = "A unified and extensible framework for running and organizing eva
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "accelerate>=1.10.0",
     "crfm-helm>=0.5.6",
     "dacite>=1.9.2",
+    "inspect-ai>=0.3.122",
     "numpy>=2.3.1",
     "openai>=1.93.0",
     "pandas>=2.3.0",
     "pydantic>=2.11.7",
     "requests>=2.32.4",
+    "torch>=2.7.1",
     "transformers>=4.53.1",
+    "wget>=3.2",
 ]
 
 [project.optional-dependencies]

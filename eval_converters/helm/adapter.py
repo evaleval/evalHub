@@ -17,7 +17,7 @@ from schema.eval_types import EvaluationResult, ModelInfo, Configuration, Infere
 from schema import SCHEMA_VERSION
 
 from eval_converters.common.adapter import BaseEvaluationAdapter, AdapterMetadata, SupportedLibrary
-from eval_converters.common.utils import detect_family, detect_hf_split
+from eval_converters.common.utils import detect_family, detect_hf_split, infer_quantization
 from .utils import detect_prompt_class, get_adapter_class_from_method_string
 
 from transformers import AutoConfig
@@ -25,49 +25,6 @@ from transformers import AutoConfig
 # run this just once in your process to initialize the registry
 register_builtin_configs_from_helm_package()
 
-def infer_quantization(model_name_or_path: str):
-	"""
-	Returns (BitPrecision, Method) enums for the given HF model.
-	"""
-	try:
-		cfg = AutoConfig.from_pretrained(model_name_or_path)
-	except Exception as e:
-		raise ValueError(
-			f"Failed to load model config for {model_name_or_path}: {e} \n"
-			"This may happen if you are using a HELM model name instead of HuggingFace model name in the adapter_spec.model field."
-			"For example, HELM uses 'meta/llama-3.1-8b-instruct' while HuggingFace uses meta-llama/llama-3.1-8b-instruct' \n"
-			"Please verify the model name and try again."
-		)
-	qcfg = getattr(cfg, "quantization_config", None)
-
-	if qcfg is None:
-		return BitPrecision.none, Method.None_
-	
-	bits = int(qcfg.get("bits") or qcfg.get("weight_bits") or qcfg.get("q_bits"))
-	
-	if bits == 8:
-		precision = BitPrecision.int8
-	elif bits == 4:
-		precision = BitPrecision.int4
-	elif bits == 16:
-		precision = BitPrecision.float16
-	elif bits == 32:
-		precision = BitPrecision.float32
-	else:
-		precision = BitPrecision.none
-
-	method_key = qcfg.get("quant_method") or ""
-	method_map = {
-		"gptq": Method.static,
-		"awq": Method.static,
-		"bitsandbytes": Method.dynamic,
-		"quanto": Method.static,
-		"hqq": Method.static,
-		"torchao": Method.static,
-	}
-
-	method = method_map.get(method_key, Method.None_)
-	return precision, method
 
 class HELMAdapter(BaseEvaluationAdapter):
 	"""
