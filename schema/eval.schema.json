@@ -118,10 +118,6 @@
                         "generation_args": {
                             "type": "object",
                             "properties": {
-                                "use_vllm": {
-                                    "type": "boolean",
-                                    "description": "Whether VLLM was used for inference"
-                                },
                                 "temperature": {
                                     "type": [
                                         "null",
@@ -155,6 +151,52 @@
                                         "type": "string"
                                     },
                                     "default": []
+                                },
+                                "seed": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Random seed parameter"
+                                },
+                                "frequency_penalty": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model’s likelihood to repeat the same line verbatim"
+                                },
+                                "presence_penalty": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model’s likelihood to talk about new topics."
+                                },
+                                "logprobs": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Return log probabilities of the output tokens or not"
+                                },
+                                "top_logprobs": {
+                                    "type": "integer",
+                                    "description": "Number of most likely tokens (0-20) to return at each token position"
+                                },
+                                "logit_bias": {
+                                    "type": [
+                                        "null", 
+                                        "object"
+                                    ],
+                                    "description": "Map token Ids (float keys) to an associated bias value (integer)",
+                                    "additionalProperties": {
+                                        "type": "integer"
+                                    },
+                                    "propertyNames": {
+                                        "pattern": "^-?\\d+(\\.\\d+)?$",
+                                        "description": "Keys must be valid floats"
+                                    }
                                 }
                             }
                         }
