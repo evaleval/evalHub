@@ -126,7 +126,8 @@
                             "type": "object",
                             "required": [
                                 "bit_precision",
-                                "method"
+                                "method",
+                                "type"
                             ],
                             "properties": {
                                 "bit_precision": {
@@ -140,12 +141,28 @@
                                     ],
                                     "description": "Quantization bit precision"
                                 },
-                                "method": {
+                                "type": {
                                     "type": "string",
                                     "enum": [
                                         "None",
                                         "dynamic",
                                         "static"
+                                    ],
+                                    "description": "Quantization type"
+                                },
+                                "method": {
+                                    "type": "string",
+                                    "enum": [
+                                        "None",
+                                        "AWQ",
+                                        "PTQ",
+                                        "GPTQ",
+                                        "GGUF",
+                                        "QAT",
+                                        "BitsAndBytes",
+                                        "SmoothQuant",
+                                        "HQQ",
+                                        "Quanto"
                                     ],
                                     "description": "Quantization method"
                                 }
