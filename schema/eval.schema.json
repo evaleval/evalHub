@@ -577,6 +577,46 @@
                             }
                         ]
                     }
+                },
+                "full_logprobs": {
+                    "additionalProperties": false,
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": [
+                                    "null"
+                                ]
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": [
+                                            "token_id",
+                                            "logprob",
+                                            "decoded_token"
+                                        ],
+                                        "properties": {
+                                            "token_id": {
+                                                "type": "number",
+                                                "description": "Id of token for which we keep its logprob"
+                                            },
+                                            "logprob": {
+                                                "type": "number",
+                                                "description": "Log probability of the token"
+                                            },
+                                            "decoded_token": {
+                                                "type": "string",
+                                                "description": "The decoded string representation of the token"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
                 }
             }
         },
