@@ -5,9 +5,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Annotated, Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, confloat, conint
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Family(Enum):
@@ -27,6 +27,9 @@ class ModelInfo(BaseModel):
     name: str = Field(
         ..., description="Model name and version (e.g., 'Llama-2-13b-chat-hf')"
     )
+    provider: str = Field(
+        ..., description="Name of the provider that shared the model used for evaluation'"
+    )
     family: Optional[Family] = Field(None, description='Model family')
 
 
@@ -41,10 +44,10 @@ class Configuration(BaseModel):
     architecture: Optional[Architecture] = Field(
         None, description='Model architecture type'
     )
-    parameters: Optional[conint(ge=1)] = Field(
+    parameters: Optional[Annotated[int, Field(ge=1)]] = Field(
         None, description='Number of parameters in billions'
     )
-    context_window: conint(ge=1) = Field(
+    context_window: Optional[Annotated[int, Field(ge=1)]] = Field(
         ..., description='Maximum context window size in tokens'
     )
     is_instruct: Optional[bool] = Field(
@@ -62,15 +65,21 @@ class BitPrecision(Enum):
     float32 = 'float32'
 
 
-class Method(Enum):
-    None_ = 'None'
+class QuantizationType(Enum):
+    none = 'None'
     dynamic = 'dynamic'
     static = 'static'
 
+class QuantizationMethod(Enum):
+    awq = 'AWQ'
+    gptq = 'GPTQ'
+    none = 'None'
+
 
 class Quantization(BaseModel):
-    bit_precision: BitPrecision = Field(..., description='Quantization bit precision')
-    method: Method = Field(..., description='Quantization method')
+    bit_precision: Optional[BitPrecision] = Field(..., description='Quantization bit precision')
+    method: Optional[QuantizationMethod] = Field(..., description='Quantization type (algorithm) like gptq, awq, bitsandbyted, so on...')
+    type: Optional[QuantizationType] = Field(..., description='Quantization type (static or dynamic)')
 
 
 class GenerationArgs(BaseModel):
@@ -80,11 +89,29 @@ class GenerationArgs(BaseModel):
     temperature: Optional[float] = Field(None, description='Sampling temperature')
     top_p: Optional[float] = Field(None, description='Nucleus sampling parameter')
     top_k: Optional[float] = Field(None, description='Top-k sampling parameter')
-    max_tokens: Optional[conint(ge=1)] = Field(
+    max_tokens: Optional[Annotated[int, Field(ge=1)]] = Field(
         None, description='Maximum number of tokens to generate'
     )
     stop_sequences: Optional[List[str]] = Field(
         [], description='Sequences that stop generation'
+    )
+    seed: Optional[float] = Field(
+        5.0, description='Random seed'
+    )
+    frequency_penalty: Optional[float] = Field(
+        0.0, description='Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model’s likelihood to repeat the same line verbatim'
+    )
+    presence_penalty: Optional[float] = Field(
+        0.0, description='Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model’s likelihood to talk about new topics.'
+    )
+    logit_bias: Optional[Dict[int, float]] = Field(
+        0.0, description='Map token Ids to an associated bias value'
+    )
+    logprobs: Optional[bool] = Field(
+        False, description='Return log probabilities of the output tokens'
+    )
+    top_logprobs: Optional[int] = Field(
+        1, description='Number of most likely tokens (0-20) to return at each token position'
     )
 
 
@@ -156,11 +183,10 @@ class Dimensions(BaseModel):
     enumerator: Enumerator = Field(
         ..., description='Style of enumeration for multiple choice options'
     )
-    instruction_phrasing: InstructionPhrasing
     separator: Separator = Field(
         ..., description='Character(s) used to separate multiple choice options'
     )
-    shots: conint(ge=0, le=10) = Field(
+    shots: Optional[Annotated[int, Field(ge=0, le=10)]] = Field(
         ..., description='Number of examples provided in the prompt'
     )
 
@@ -169,6 +195,7 @@ class PromptConfig(BaseModel):
     prompt_class: PromptClass = Field(
         ..., description='Type of task and its formatting requirements'
     )
+    instruction_phrasing: InstructionPhrasing
     dimensions: Optional[Dimensions] = Field(
         None, description='Format-specific configuration dimensions'
     )
@@ -193,9 +220,8 @@ class HfSplit(Enum):
 class SampleIdentifier(BaseModel):
     dataset_name: str = Field(..., description='Name of the source dataset')
     hf_repo: str = Field(..., description='HuggingFace repository identifier')
-    hf_split: HfSplit = Field(..., description='HuggingFace split identifier')
     hf_index: int = Field(..., description='Index in the HuggingFace dataset')
-
+    hf_split: Optional[HfSplit] = Field(..., description='HuggingFace split identifier')
 
 class PromptLogprob(BaseModel):
     token_id: float = Field(
@@ -290,7 +316,7 @@ class Evaluation(BaseModel):
         description='Method used to evaluate the answer, including predefined methods and user-defined methods.',
     )
     ground_truth: str = Field(..., description='The correct answer for evaluation')
-    score: confloat(ge=0.0, le=1.0) = Field(
+    score: Annotated[float, Field(ge=0.0, le=1.0)] = Field(
         ...,
         description="Binary score indicating whether the model's answer was correct (1.0) or incorrect (0.0)",
     )
