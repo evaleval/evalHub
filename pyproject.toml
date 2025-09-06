@@ -28,3 +28,7 @@ dev = [
 [tool.setuptools.packages.find]
 include = ["helm*", "schema*", "common*", "config*", "eval_converters*"]
 exclude = ["tests*"]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
