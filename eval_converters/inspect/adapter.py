@@ -33,9 +33,9 @@ from schema.eval_types import (
 	Model
 )
 
-from eval_converters.common.adapter import BaseEvaluationAdapter, AdapterMetadata, SupportedLibrary
+from eval_converters.common.adapter import BaseEvaluationAdapter, SupportedLibrary
 from eval_converters.common.error import AdapterError
-from eval_converters.common.utils import detect_family, detect_hf_split, infer_quantization, extract_context_window_from_config
+from eval_converters.common.utils import detect_family, infer_quantization, extract_context_window_from_config
 from eval_converters.inspect.utils import detect_prompt_class#, get_adapter_class_from_method_string
 from transformers import AutoConfig
 
@@ -49,20 +49,11 @@ class InspectAIAdapter(BaseEvaluationAdapter):
     SCENARIO_FILE = 'scenario.json'
 
     @property
-    def metadata(self) -> AdapterMetadata:
-        return AdapterMetadata(
-            name="InspectAIAdapter",
-            version="0.0.1",
-            supported_library_versions=["0.3.112"],
-            description="Adapter for transforming Inspect AI evaluation outputs to unified schema format"
-        )
-
-    @property
     def supported_library(self) -> SupportedLibrary:
         return SupportedLibrary.INSPECT_AI
         
     def transform_from_directory(self, dir_path: Union[str, Path]):
-        pass
+        raise NotImplementedError("Inspect AI adapter do not support loading logs from directory!")
 
     def transform_from_file(self, file_path: Union[str, Path]) -> Union[EvaluationResult, List[EvaluationResult]]:
         if not os.path.exists(file_path):
@@ -73,9 +64,9 @@ class InspectAIAdapter(BaseEvaluationAdapter):
             eval_log: EvalLog = self._load_file(file_path)
             return self.transform(eval_log)
         except AdapterError as e:
-            raise e # raise from e... fix it
+            raise e
         except Exception as e:
-            raise AdapterError(f"Failed to load file {file_path}: {str(e)}")
+            raise AdapterError(f"Failed to load file {file_path}: {str(e)} for InspectAIAdapter")
     
     def _get_score(self, response: str, ground_truth: str, metric_name: str) -> float:
         if metric_name.strip().lower() == 'accuracy':
@@ -92,32 +83,17 @@ class InspectAIAdapter(BaseEvaluationAdapter):
         eval_spec: EvalSpec = raw_data.eval
         # 1. Model
         # 1.1. ModelInfo
-        provider_name = eval_spec.model.rsplit('/', 1)[0]
-        model_name = eval_spec.model.split('/')[-1] # raw_data.samples[0].output.model
         
         model_info = ModelInfo(
-            name=model_name,
-            family=detect_family(model_name),
-            provider=provider_name
+            name=eval_spec.model
         )
 
-        # 1.2. Configuration
-        # architecture, parameters, is_instruct, hf_path - are these parameters even needed for evaluation uniqueness sake? It's hard to get them
-        revision = eval_spec.revision
-        commit_hash = revision.commit if revision else None
-        context_window = extract_context_window_from_config(eval_spec.model)
-
-        configuration = Configuration(
-            context_window=context_window,
-            revision=commit_hash
-        )
-        # 1.3. InferenceSettings
+        # 1.2. InferenceSettings
         precision, quant_method, quant_type = infer_quantization(eval_spec.model)
         quantization = Quantization(
             bit_precision=precision,
             method=quant_method,
             type=quant_type
-            # info about quantization type = gguf, awq, so on...
         )
 
         generate_config: GenerateConfig = eval_spec.model_generate_config
@@ -141,9 +117,7 @@ class InspectAIAdapter(BaseEvaluationAdapter):
 
         model = Model(
             model_info=model_info,
-            configuration=configuration,
             inference_settings=inference_settings,
-            provider_name=provider_name
         )
 
         # 2. PromptConfig
@@ -244,9 +218,7 @@ class InspectAIAdapter(BaseEvaluationAdapter):
                 )
             )
 
-        
         return evaluation_results
         
-
     def _load_file(self, file_path) -> EvalLog:
         return read_eval_log(file_path)
