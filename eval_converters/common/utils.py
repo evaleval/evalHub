@@ -1,13 +1,6 @@
-from schema.eval_types import BitPrecision, Family, HfSplit, QuantizationMethod, QuantizationType
-from transformers import AutoConfig
+from schema.eval_types import BitPrecision, GenerationArgs, HfSplit, QuantizationMethod, QuantizationType
+from transformers import AutoConfig, GenerationConfig
 
-def detect_family(model_name: str) -> Family:
-    """Return the Family enum if any of its values is a substring of model_name."""
-    model_name_lower = model_name.lower()
-    for family in Family:
-        if family.value and family.value.lower() in model_name_lower:
-            return family
-    return Family.NoneType_None
 
 def detect_hf_split(split_str: str) -> HfSplit:
     """
@@ -28,11 +21,15 @@ def detect_hf_split(split_str: str) -> HfSplit:
     else:
         return HfSplit.validation
 
-def infer_quantization_from_model_name(model_name_or_path: str) -> tuple[BitPrecision, QuantizationMethod, QuantizationType]:
-    pass
+def infer_quantization_method_from_model_name(model_name_or_path: str) -> QuantizationMethod:
+    for q_method in QuantizationMethod:
+        if q_method.lower() in model_name_or_path.lower():
+            return QuantizationMethod(q_method)
+    
+    if any(q_method in model_name_or_path for q_method in ["4bit", "8bit", "bitsandbytes", "bnb"]):
+        return QuantizationMethod.BitsAndBytes
 
-def infer_quantization_from_model_config(model_name_or_path: str) -> tuple[BitPrecision, QuantizationMethod, QuantizationType]:
-    pass
+    return QuantizationMethod.none
 
 def infer_quantization(model_name_or_path: str) -> tuple[BitPrecision, QuantizationMethod, QuantizationType]:
     try:
@@ -57,39 +54,36 @@ def infer_quantization(model_name_or_path: str) -> tuple[BitPrecision, Quantizat
     else:
         precision = BitPrecision.none
 
-    method_key = qcfg.get("quant_method") or ""
+    quantization_type = infer_quantization_method_from_model_name(model_name_or_path)
+
     method_map = {
         "gptq": QuantizationMethod.static,
+        "gguf": QuantizationMethod.static,
         "awq": QuantizationMethod.static,
         "bitsandbytes": QuantizationMethod.dynamic,
         "quanto": QuantizationMethod.static,
         "hqq": QuantizationMethod.static,
         "torchao": QuantizationMethod.static,
+        "ptq": QuantizationMethod.static,
+        "smoothquant": QuantizationMethod.static,
+        "qat": QuantizationMethod.static
     }
 
-    method = method_map.get(method_key, QuantizationMethod.none)
-    return precision, QuantizationMethod.awq, method
+    method = method_map.get(quantization_type, QuantizationMethod.none)
+    return precision, quantization_type, method
 
-def extract_context_window_from_config(model):
+def infer_generation_args_default_values(model_name_or_path: str) -> GenerationArgs:
     try:
-        config = AutoConfig.from_pretrained(model)
-
-        priority_fields = [
-            "max_position_embeddings",
-            "n_positions",
-            "seq_len",
-            "seq_length",
-            "n_ctx",
-            "sliding_window"
-        ]
-
-        context_window = next((getattr(config, f) for f in priority_fields if hasattr(config, f)), None)
-        if context_window is None:
-            context_window = 1
-    
+        gen_config = GenerationConfig.from_pretrained(model_name_or_path)
+        return GenerationArgs(
+            temperature=gen_config.temperature,
+            top_p = gen_config.top_p,
+            top_k = gen_config.top_k,
+            max_tokens = gen_config.max_new_tokens,
+            stop_sequences = gen_config.stop_strings,
+            frequency_penalty = gen_config.repetition_penalty,
+            presence_penalty = gen_config.diversity_penalty,
+            logprobs = gen_config.output_logits
+        )
     except Exception as e:
-        print(f"Error getting context window: {e}")
-        context_window = 1
-    
-    finally:
-        return context_window
+        return GenerationArgs()

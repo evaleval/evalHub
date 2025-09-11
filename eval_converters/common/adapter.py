@@ -9,14 +9,6 @@ import json
 
 from eval_converters.common.error import AdapterError, TransformationError
 
-@dataclass
-class AdapterMetadata:
-    """Metadata about the adapter"""
-    name: str
-    version: str
-    supported_library_versions: List[str]
-    description: str
-
     
 class SupportedLibrary(Enum):
     """Supported evaluation libraries"""
@@ -44,12 +36,6 @@ class BaseEvaluationAdapter(ABC):
         """
         self.strict_validation = strict_validation
         self.logger = logging.getLogger(self.__class__.__name__)
-        
-    @property
-    @abstractmethod
-    def metadata(self) -> AdapterMetadata:
-        """Return metadata about this adapter"""
-        pass
     
     @property
     @abstractmethod

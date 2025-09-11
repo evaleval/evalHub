@@ -12,7 +12,6 @@ from schema import SCHEMA_VERSION
 from schema.eval_types import (
 	EvaluationResult,
 	ModelInfo,
-	Configuration,
     Dimensions,
 	GenerationArgs,
 	InferenceSettings,
@@ -28,14 +27,12 @@ from schema.eval_types import (
 	BitPrecision,
 	SampleIdentifier,
 	Quantization,
-	QuantizationMethod,
-    QuantizationType,
 	Model
 )
 
 from eval_converters.common.adapter import BaseEvaluationAdapter, SupportedLibrary
 from eval_converters.common.error import AdapterError
-from eval_converters.common.utils import detect_family, infer_quantization, extract_context_window_from_config
+from eval_converters.common.utils import infer_quantization, infer_generation_args_default_values
 from eval_converters.inspect.utils import detect_prompt_class#, get_adapter_class_from_method_string
 from transformers import AutoConfig
 
@@ -77,7 +74,7 @@ class InspectAIAdapter(BaseEvaluationAdapter):
             
             return score
         else:
-            return 0.0
+            raise NotImplemented('Metric other than accuracy do not supported at this moment.')
 
     def _transform_single(self, raw_data: EvalLog) -> List[EvaluationResult]:
         eval_spec: EvalSpec = raw_data.eval
@@ -92,26 +89,27 @@ class InspectAIAdapter(BaseEvaluationAdapter):
         precision, quant_method, quant_type = infer_quantization(eval_spec.model)
         quantization = Quantization(
             bit_precision=precision,
-            method=quant_method,
-            type=quant_type
+            quantization_method=quant_method,
+            quantization_type=quant_type
         )
 
         generate_config: GenerateConfig = eval_spec.model_generate_config
+        generation_args_default: GenerationArgs = infer_generation_args_default_values(eval_spec.model)
 
         inference_settings = InferenceSettings(
             quantization=quantization,
             generation_args=GenerationArgs(
-                temperature=generate_config.temperature or None,
-                top_p=generate_config.top_p or None,
-                top_k=generate_config.top_k or None,
-                max_tokens=generate_config.max_tokens or None,
-                stop_sequences=generate_config.stop_seqs or None,
-                seed=generate_config.seed or None,
-                frequency_penalty=generate_config.frequency_penalty or None,
-                presence_penalty=generate_config.presence_penalty or None,
-                logit_bias=generate_config.logit_bias or None,
-                logprobs=generate_config.logprobs or None,
-                top_logprobs=generate_config.top_logprobs or None
+                temperature=generate_config.temperature or generation_args_default.temperature,
+                top_p=generate_config.top_p or generation_args_default.top_p,
+                top_k=generate_config.top_k or generation_args_default.top_k,
+                max_tokens=generate_config.max_tokens or generation_args_default.max_tokens,
+                stop_sequences=generate_config.stop_seqs or generation_args_default.stop_sequences,
+                seed=generate_config.seed or generation_args_default.seed,
+                frequency_penalty=generate_config.frequency_penalty or generation_args_default.frequency_penalty,
+                presence_penalty=generate_config.presence_penalty or generation_args_default.presence_penalty,
+                logit_bias=generate_config.logit_bias or generation_args_default.logit_bias,
+                logprobs=generate_config.logprobs or generation_args_default.logprobs,
+                top_logprobs=generate_config.top_logprobs or generation_args_default.top_logprobs
             )
         )
 
@@ -206,10 +204,14 @@ class InspectAIAdapter(BaseEvaluationAdapter):
                 score=score,
             )
 
+            evaluation_id = f'inspect_ai_{str(eval_spec.eval_id)}_dataset_{sample_identifier.dataset_name}'
+            evaluation_sample_id = f'inspect_ai_{str(eval_spec.eval_id)}_dataset_{sample_identifier.dataset_name}_id_{sample_identifier.hf_index}'
+
             evaluation_results.append(
                 EvaluationResult(
                     schema_version=SCHEMA_VERSION,
-                    evaluation_id=f'inspect/{str(eval_spec.eval_id)}',
+                    evaluation_id=evaluation_id.replace('/', '_'),
+                    evaluation_sample_id=evaluation_sample_id.replace('/', '_'),
                     model=model,
                     prompt_config=prompt_config,
                     instance=instance,
