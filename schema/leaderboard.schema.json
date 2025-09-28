@@ -210,6 +210,22 @@
                                 "type": "boolean",
                                 "description": "Whether a lower score is better"
                             },
+                            "score_type": {
+                                "type": "string",
+                                "description": "Type of score",
+                                "enum": [
+                                    "binary",
+                                    "continuous",
+                                    "levels"
+                                ]
+                            },
+                            "score_level_names": {
+                                "type": "array",
+                                "description": "Names of the score levels",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
                             "min_score": {
                                 "type": "number",
                                 "description": "Minimum possible score"
@@ -259,105 +275,105 @@
                         "type": "string",
                         "description": "Details about how the scores were generated",
                         "prompt_config": {
-                        "type": "object",
-                        "description": "Configuration of the prompt template and formatting",
-                        "required": [
-                            "prompt_class"
-                        ],
-                        "properties": {
-                            "prompt_class": {
-                                "type": "string",
-                                "description": "Type of task and its formatting requirements",
-                                "enum": [
-                                    "MultipleChoice",
-                                    "OpenEnded",
-                                    "Completion"
-                                ]
-                            },
-                            "dimensions": {
-                                "type": "object",
-                                "description": "Format-specific configuration dimensions",
-                                "required": [
-                                    "choices_order",
-                                    "enumerator",
-                                    "instruction_phrasing",
-                                    "separator",
-                                    "shots"
-                                ],
-                                "properties": {
-                                    "choices_order": {
-                                        "type": "object",
-                                        "required": [
-                                            "method",
-                                            "description"
-                                        ],
-                                        "properties": {
-                                            "method": {
-                                                "type": "string",
-                                                "description": "The method to use for ordering choices"
-                                            },
-                                            "description": {
-                                                "type": "string",
-                                                "description": "Detailed explanation of the ordering method"
+                            "type": "object",
+                            "description": "Configuration of the prompt template and formatting",
+                            "required": [
+                                "prompt_class"
+                            ],
+                            "properties": {
+                                "prompt_class": {
+                                    "type": "string",
+                                    "description": "Type of task and its formatting requirements",
+                                    "enum": [
+                                        "MultipleChoice",
+                                        "OpenEnded",
+                                        "Completion"
+                                    ]
+                                },
+                                "dimensions": {
+                                    "type": "object",
+                                    "description": "Format-specific configuration dimensions",
+                                    "required": [
+                                        "choices_order",
+                                        "enumerator",
+                                        "instruction_phrasing",
+                                        "separator",
+                                        "shots"
+                                    ],
+                                    "properties": {
+                                        "choices_order": {
+                                            "type": "object",
+                                            "required": [
+                                                "method",
+                                                "description"
+                                            ],
+                                            "properties": {
+                                                "method": {
+                                                    "type": "string",
+                                                    "description": "The method to use for ordering choices"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "description": "Detailed explanation of the ordering method"
+                                                }
                                             }
-                                        }
-                                    },
-                                    "demonstrations": {
-                                        "type": "array",
-                                        "description": "Array of demonstration examples used in few-shot prompting",
-                                        "default": []
-                                    },
-                                    "enumerator": {
-                                        "type": "string",
-                                        "description": "Style of enumeration for multiple choice options",
-                                        "enum": [
-                                            "capitals",
-                                            "lowercase",
-                                            "numbers",
-                                            "roman",
-                                            "keyboard",
-                                            "greek"
-                                        ]
-                                    },
-                                    "instruction_phrasing": {
-                                        "type": "object",
-                                        "required": [
-                                            "name",
-                                            "text"
-                                        ],
-                                        "properties": {
-                                            "name": {
-                                                "type": "string",
-                                                "description": "Name of the instruction template"
-                                            },
-                                            "text": {
-                                                "type": "string",
-                                                "description": "Template text with placeholders for question and choices (or more)"
+                                        },
+                                        "demonstrations": {
+                                            "type": "array",
+                                            "description": "Array of demonstration examples used in few-shot prompting",
+                                            "default": []
+                                        },
+                                        "enumerator": {
+                                            "type": "string",
+                                            "description": "Style of enumeration for multiple choice options",
+                                            "enum": [
+                                                "capitals",
+                                                "lowercase",
+                                                "numbers",
+                                                "roman",
+                                                "keyboard",
+                                                "greek"
+                                            ]
+                                        },
+                                        "instruction_phrasing": {
+                                            "type": "object",
+                                            "required": [
+                                                "name",
+                                                "text"
+                                            ],
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "description": "Name of the instruction template"
+                                                },
+                                                "text": {
+                                                    "type": "string",
+                                                    "description": "Template text with placeholders for question and choices (or more)"
+                                                }
                                             }
+                                        },
+                                        "separator": {
+                                            "type": "string",
+                                            "description": "Character(s) used to separate multiple choice options",
+                                            "enum": [
+                                                "\\s",
+                                                "\n",
+                                                ", ",
+                                                "; ",
+                                                " | ",
+                                                " OR ",
+                                                " or "
+                                            ]
+                                        },
+                                        "shots": {
+                                            "type": "integer",
+                                            "description": "Number of examples provided in the prompt",
+                                            "minimum": 0,
+                                            "maximum": 10
                                         }
-                                    },
-                                    "separator": {
-                                        "type": "string",
-                                        "description": "Character(s) used to separate multiple choice options",
-                                        "enum": [
-                                            "\\s",
-                                            "\n",
-                                            ", ",
-                                            "; ",
-                                            " | ",
-                                            " OR ",
-                                            " or "
-                                        ]
-                                    },
-                                    "shots": {
-                                        "type": "integer",
-                                        "description": "Number of examples provided in the prompt",
-                                        "minimum": 0,
-                                        "maximum": 10
                                     }
                                 }
                             }
-                        }
                         },
                         "evaluation_method": {
                             "type": "object",
