@@ -222,7 +222,7 @@
                     },
                     "score_details": {
                         "type": "string",
-                        "description": "The score for the evaluation and relted details",
+                        "description": "The score for the evaluation and related details",
                         "properties": {
                             "score": {
                                 "type": "number",
@@ -231,6 +231,27 @@
                             "details": {
                                 "type": "string",
                                 "description": "Any additional details about the score"
+                            }
+                        }
+                    },
+                    "sample_level_data": {
+                        "type": "array",
+                        "description": "Sample level results for items used in evaluation",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "sample_id",
+                                "score"
+                            ],
+                            "properties": {
+                                "sample_id": {
+                                    "type": "string",
+                                    "description": "Unique identifier for the sample"
+                                },
+                                "score": {
+                                    "type": "number",
+                                    "description": "Score for the sample"
+                                }
                             }
                         }
                     },
