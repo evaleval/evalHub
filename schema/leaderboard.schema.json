@@ -41,46 +41,14 @@
                 "inference_settings": {
                     "type": "object",
                     "description": "Runtime settings and parameters for model inference - controls how the model generates outputs and performs during execution",
-                    "required": [
-                        "quantization"
-                    ],
                     "properties": {
-                        "quantization": {
-                            "type": "object",
-                            "required": [
-                                "bit_precision",
-                                "method"
-                            ],
-                            "properties": {
-                                "bit_precision": {
-                                    "type": "string",
-                                    "enum": [
-                                        "none",
-                                        "int8",
-                                        "int4",
-                                        "float16",
-                                        "float32"
-                                    ],
-                                    "description": "Quantization bit precision"
-                                },
-                                "method": {
-                                    "type": "string",
-                                    "enum": [
-                                        "None",
-                                        "dynamic",
-                                        "static"
-                                    ],
-                                    "description": "Quantization method"
-                                }
-                            }
+                        "quantization_method": {
+                            "type": "string",
+                            "description": "Quantization method used for the model (e.g GPTQ)"
                         },
                         "generation_args": {
                             "type": "object",
                             "properties": {
-                                "use_vllm": {
-                                    "type": "boolean",
-                                    "description": "Whether VLLM was used for inference"
-                                },
                                 "temperature": {
                                     "type": [
                                         "null",
@@ -106,16 +74,9 @@
                                     "type": "integer",
                                     "minimum": 1,
                                     "description": "Maximum number of tokens to generate"
-                                },
-                                "stop_sequences": {
-                                    "type": "array",
-                                    "description": "Sequences that stop generation",
-                                    "items": {
-                                        "type": "string"
-                                    },
-                                    "default": []
                                 }
-                            }
+                            },
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -180,6 +141,9 @@
                     "score_details": {
                         "type": "string",
                         "description": "The score for the evaluation and related details",
+                        "required": [
+                            "score"
+                        ],
                         "properties": {
                             "score": {
                                 "type": "number",
