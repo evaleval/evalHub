@@ -34,68 +34,9 @@
                     "type": "string",
                     "description": "Name of the provider for the version of the model used during evaluation."
                 },
-                "family": {
-                    "type": [
-                        "string"
-                    ],
-                    "description": "Model family"
-                },
                 "developer": {
                     "type": "string",
                     "description": "Name of organization that provides the model (e.g. 'OpenAI')"
-                },
-                "configuration": {
-                    "type": "object",
-                    "description": "Technical specifications and implementation details of the model - defines how the model is structured and where it's hosted",
-                    "required": [
-                        "context_window"
-                    ],
-                    "properties": {
-                        "architecture": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "enum": [
-                                "transformer",
-                                "moe",
-                                "ssm",
-                                null
-                            ],
-                            "description": "Model architecture type"
-                        },
-                        "parameters": {
-                            "type": [
-                                "integer",
-                                "null"
-                            ],
-                            "minimum": 1,
-                            "description": "Number of parameters in billions"
-                        },
-                        "context_window": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "description": "Maximum context window size in tokens"
-                        },
-                        "is_instruct": {
-                            "type": "boolean",
-                            "description": "Whether the model is instruction-tuned"
-                        },
-                        "hf_path": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "description": "HuggingFace model path"
-                        },
-                        "revision": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "description": "Model revision/commit hash"
-                        }
-                    }
                 },
                 "inference_settings": {
                     "type": "object",
