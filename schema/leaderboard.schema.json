@@ -23,12 +23,16 @@
             "description": "Complete model specification including basic information, technical configuration and inference settings",
             "required": [
                     "name",
-                    "provider_name"
+                    "source_url"
             ],
             "properties": {
                 "name": {
                     "type": "string",
                     "description": "Model name and version (e.g., 'Llama-2-13b-chat-hf')"
+                },
+                "source_url": {
+                    "type": "string",
+                    "description": "URL for the source of the evaluation data"
                 },
                 "provider_name": {
                     "type": "string",
