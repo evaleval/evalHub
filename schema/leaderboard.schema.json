@@ -28,7 +28,7 @@
             "properties": {
                 "name": {
                     "type": "string",
-                    "description": "Model name and version (e.g., 'Llama-2-13b-chat-hf')"
+                    "description": "Model name in HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct)"
                 },
                 "source_url": {
                     "type": "string",
@@ -36,53 +36,15 @@
                 },
                 "provider_name": {
                     "type": "string",
-                    "description": "Name of the provider for the version of the model used during evaluation."
+                    "description": "Name of the provider of the evaluation results."
                 },
                 "developer": {
                     "type": "string",
                     "description": "Name of organization that provides the model (e.g. 'OpenAI')"
                 },
-                "inference_settings": {
-                    "type": "object",
-                    "description": "Runtime settings and parameters for model inference - controls how the model generates outputs and performs during execution",
-                    "properties": {
-                        "quantization_method": {
-                            "type": "string",
-                            "description": "Quantization method used for the model (e.g GPTQ)"
-                        },
-                        "generation_args": {
-                            "type": "object",
-                            "properties": {
-                                "temperature": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Sampling temperature"
-                                },
-                                "top_p": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Nucleus sampling parameter"
-                                },
-                                "top_k": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Top-k sampling parameter"
-                                },
-                                "max_tokens": {
-                                    "type": "integer",
-                                    "minimum": 1,
-                                    "description": "Maximum number of tokens to generate"
-                                }
-                            },
-                            "additionalProperties": true
-                        }
-                    }
+                "inference_platform": {
+                    "type": "string",
+                    "description": "Description of platform used to run the evaluations (e.g. local machine, Bedrock)"
                 }
             }
         },
@@ -159,191 +121,48 @@
                             }
                         }
                     },
-                    "sample_level_data": {
-                        "type": "array",
-                        "description": "Sample level results for items used in evaluation",
-                        "items": {
-                            "type": "object",
-                            "required": [
-                                "sample_id",
-                                "score"
-                            ],
-                            "properties": {
-                                "sample_id": {
-                                    "type": "string",
-                                    "description": "Unique identifier for the sample"
-                                },
-                                "score": {
-                                    "type": "number",
-                                    "description": "Score for the sample"
-                                }
-                            }
-                        }
+                    "detailed_evaluation_results_url": {
+                        "type": "string",
+                        "description": "Link to detailed evaluation data"
                     },
                     "generation_config": {
-                        "type": "string",
-                        "description": "Details about how the scores were generated",
-                        "prompt_config": {
-                            "type": "object",
-                            "description": "Configuration of the prompt template and formatting",
-                            "required": [
-                                "prompt_class"
-                            ],
-                            "properties": {
-                                "prompt_class": {
-                                    "type": "string",
-                                    "description": "Type of task and its formatting requirements",
-                                    "enum": [
-                                        "MultipleChoice",
-                                        "OpenEnded",
-                                        "Completion"
-                                    ]
+                        "type": "object",
+                        "generation_args": {
+                                "type": "object",
+                                "description": "Parameters used to generate results - properties may vary by model type",
+                                "properties": {
+                                    "temperature": {
+                                        "type": [
+                                            "null",
+                                            "number"
+                                        ],
+                                        "description": "Sampling temperature"
+                                    },
+                                    "top_p": {
+                                        "type": [
+                                            "null",
+                                            "number"
+                                        ],
+                                        "description": "Nucleus sampling parameter"
+                                    },
+                                    "top_k": {
+                                        "type": [
+                                            "null",
+                                            "number"
+                                        ],
+                                        "description": "Top-k sampling parameter"
+                                    },
+                                    "max_tokens": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "description": "Maximum number of tokens to generate"
+                                    }
                                 },
-                                "dimensions": {
-                                    "type": "object",
-                                    "description": "Format-specific configuration dimensions",
-                                    "required": [
-                                        "choices_order",
-                                        "enumerator",
-                                        "instruction_phrasing",
-                                        "separator",
-                                        "shots"
-                                    ],
-                                    "properties": {
-                                        "choices_order": {
-                                            "type": "object",
-                                            "required": [
-                                                "method",
-                                                "description"
-                                            ],
-                                            "properties": {
-                                                "method": {
-                                                    "type": "string",
-                                                    "description": "The method to use for ordering choices"
-                                                },
-                                                "description": {
-                                                    "type": "string",
-                                                    "description": "Detailed explanation of the ordering method"
-                                                }
-                                            }
-                                        },
-                                        "demonstrations": {
-                                            "type": "array",
-                                            "description": "Array of demonstration examples used in few-shot prompting",
-                                            "default": []
-                                        },
-                                        "enumerator": {
-                                            "type": "string",
-                                            "description": "Style of enumeration for multiple choice options",
-                                            "enum": [
-                                                "capitals",
-                                                "lowercase",
-                                                "numbers",
-                                                "roman",
-                                                "keyboard",
-                                                "greek"
-                                            ]
-                                        },
-                                        "instruction_phrasing": {
-                                            "type": "object",
-                                            "required": [
-                                                "name",
-                                                "text"
-                                            ],
-                                            "properties": {
-                                                "name": {
-                                                    "type": "string",
-                                                    "description": "Name of the instruction template"
-                                                },
-                                                "text": {
-                                                    "type": "string",
-                                                    "description": "Template text with placeholders for question and choices (or more)"
-                                                }
-                                            }
-                                        },
-                                        "separator": {
-                                            "type": "string",
-                                            "description": "Character(s) used to separate multiple choice options",
-                                            "enum": [
-                                                "\\s",
-                                                "\n",
-                                                ", ",
-                                                "; ",
-                                                " | ",
-                                                " OR ",
-                                                " or "
-                                            ]
-                                        },
-                                        "shots": {
-                                            "type": "integer",
-                                            "description": "Number of examples provided in the prompt",
-                                            "minimum": 0,
-                                            "maximum": 10
-                                        }
-                                    }
-                                }
-                            }
+                                "additionalProperties": true
                         },
-                        "evaluation_method": {
-                            "type": "object",
-                            "description": "Evaluation metrics and ground truth",
-                            "required": [
-                                "evaluation_method"
-                            ],
-                            "properties": {
-                                "evaluation_method": {
-                                    "type": "object",
-                                    "description": "Method used to evaluate the answer, including predefined methods and user-defined methods.",
-                                    "properties": {
-                                        "method_name": {
-                                            "type": "string",
-                                            "description": "Name of the evaluation method. Can be a predefined method or a user-defined method."
-                                        },
-                                        "description": {
-                                            "type": "string",
-                                            "description": "Detailed explanation of how the evaluation method works. For user-defined methods, this is required."
-                                        },
-                                        "parameters": {
-                                            "type": "object",
-                                            "description": "Optional parameters used by the evaluation method. Allows custom configuration.",
-                                            "additionalProperties": true
-                                        }
-                                    },
-                                    "required": [
-                                        "method_name",
-                                        "description"
-                                    ],
-                                    "if": {
-                                        "properties": {
-                                            "method_name": {
-                                                "enum": [
-                                                    "label_only_match",
-                                                    "content_similarity"
-                                                ]
-                                            }
-                                        }
-                                    },
-                                    "then": {
-                                        "properties": {
-                                            "description": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "Compares only the choice identifier/label to evaluate the response.",
-                                                    "Finds the most similar answer among the given choices by comparing the textual content"
-                                                ]
-                                            }
-                                        }
-                                    },
-                                    "else": {
-                                        "properties": {
-                                            "description": {
-                                                "type": "string",
-                                                "description": "Explanation of the custom evaluation method."
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                        "additional_details": {
+                            "type": "string",
+                            "description": "Additional details about how the results for this metric were generated."
                         }
                     }
                 }
