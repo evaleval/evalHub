@@ -27,11 +27,47 @@
             "description": "Timestamp for when this record was created - using Unix Epoch time format"
         },
         "source_data": {
-            "type": "array",
-            "description": "URLs for the source of the evaluation data",
-            "items": {
-                "type": "string"
-            }
+            "oneOf": [
+                {
+                    "type": "array",
+                    "description": "URLs for the source of the evaluation data",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "type": "object",
+                    "description": "Details about dataset used for evaluation",
+                    "required": [
+                        "dataset_name"
+                    ],
+                    "properties": {
+                        "dataset_name": {
+                            "type": "string",
+                            "description": "Name of the source dataset"
+                        },
+                        "hf_repo": {
+                            "type": "string",
+                            "description": "HuggingFace repository identifier"
+                        },
+                        "hf_split": {
+                            "type": "string",
+                            "description": "One of train, val or test."
+                        },
+                        "samples_number": {
+                            "type": "integer",
+                            "description": "Number of samples in the dataset"
+                        },
+                        "sample_ids": {
+                            "type": "array",
+                            "description": "Array of sample ids used for evaluation",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            ]
         },
         "evaluation_source": {
             "type": "object",
@@ -241,37 +277,37 @@
                     "generation_config": {
                         "type": "object",
                         "generation_args": {
-                                "type": "object",
-                                "description": "Parameters used to generate results - properties may vary by model type",
-                                "properties": {
-                                    "temperature": {
-                                        "type": [
-                                            "null",
-                                            "number"
-                                        ],
-                                        "description": "Sampling temperature"
-                                    },
-                                    "top_p": {
-                                        "type": [
-                                            "null",
-                                            "number"
-                                        ],
-                                        "description": "Nucleus sampling parameter"
-                                    },
-                                    "top_k": {
-                                        "type": [
-                                            "null",
-                                            "number"
-                                        ],
-                                        "description": "Top-k sampling parameter"
-                                    },
-                                    "max_tokens": {
-                                        "type": "integer",
-                                        "minimum": 1,
-                                        "description": "Maximum number of tokens to generate"
-                                    }
+                            "type": "object",
+                            "description": "Parameters used to generate results - properties may vary by model type",
+                            "properties": {
+                                "temperature": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Sampling temperature"
                                 },
-                                "additionalProperties": true
+                                "top_p": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Nucleus sampling parameter"
+                                },
+                                "top_k": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Top-k sampling parameter"
+                                },
+                                "max_tokens": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "Maximum number of tokens to generate"
+                                }
+                            },
+                            "additionalProperties": true
                         },
                         "additional_details": {
                             "type": "string",
@@ -280,7 +316,82 @@
                     }
                 }
             }
-
+        },
+        "detailed_evaluation_results_per_samples": {
+            "description": "Detailed eval results for all individual samples in the evaluation. This can be provided as source link or list of DetailedEvaluationResultsPerSample objects.",
+            "anyOf": [
+                {
+                    "type": "string",
+                    "description": "Link to detailed evaluation data for all samples"
+                },
+                {
+                    "type": "array",
+                    "description": "Array of evaluation results",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "sample_id",
+                            "input",
+                            "ground_truth",
+                            "response"
+                        ],
+                        "properties": {
+                            "sample_id": {
+                                "type": "string",
+                                "description": "Simple sample ID"
+                            },
+                            "input": {
+                                "type": "string",
+                                "description": "Raw input for the model"
+                            },
+                            "ground_truth": {
+                                "type": "string",
+                                "description": "Target reponsse"
+                            },
+                            "response": {
+                                "type": "string",
+                                "description": "Response from the model"
+                            },
+                            "choices": {
+                                "type": "array",
+                                "description": "Array of possible responses",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "full_logprobs": {
+                                "type": "array",
+                                "description": "Full log probabilities generated for this sample",
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": [
+                                            "token_id",
+                                            "logprob",
+                                            "decoded_token"
+                                        ],
+                                        "properties": {
+                                            "token_id": {
+                                                "type": "number",
+                                                "description": "Id of token for which we keep its logprob"
+                                            },
+                                            "logprob": {
+                                                "type": "number",
+                                                "description": "Log probability of the token"
+                                            },
+                                            "decoded_token": {
+                                                "type": "string",
+                                                "description": "The decoded string representation of the token"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
         }
     }
 }
