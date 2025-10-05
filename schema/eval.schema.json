@@ -62,59 +62,6 @@
                         }
                     }
                 },
-                "configuration": {
-                    "type": "object",
-                    "description": "Technical specifications and implementation details of the model - defines how the model is structured and where it's hosted",
-                    "required": [
-                        "context_window"
-                    ],
-                    "properties": {
-                        "architecture": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "enum": [
-                                "transformer",
-                                "moe",
-                                "ssm",
-                                null
-                            ],
-                            "description": "Model architecture type"
-                        },
-                        "parameters": {
-                            "type": [
-                                "integer",
-                                "null"
-                            ],
-                            "minimum": 1,
-                            "description": "Number of parameters in billions"
-                        },
-                        "context_window": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "description": "Maximum context window size in tokens"
-                        },
-                        "is_instruct": {
-                            "type": "boolean",
-                            "description": "Whether the model is instruction-tuned"
-                        },
-                        "hf_path": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "description": "HuggingFace model path"
-                        },
-                        "revision": {
-                            "type": [
-                                "string",
-                                "null"
-                            ],
-                            "description": "Model revision/commit hash"
-                        }
-                    }
-                },
                 "inference_settings": {
                     "type": "object",
                     "description": "Runtime settings and parameters for model inference - controls how the model generates outputs and performs during execution",
@@ -126,7 +73,8 @@
                             "type": "object",
                             "required": [
                                 "bit_precision",
-                                "method"
+                                "method",
+                                "type"
                             ],
                             "properties": {
                                 "bit_precision": {
@@ -140,12 +88,28 @@
                                     ],
                                     "description": "Quantization bit precision"
                                 },
-                                "method": {
+                                "type": {
                                     "type": "string",
                                     "enum": [
                                         "None",
                                         "dynamic",
                                         "static"
+                                    ],
+                                    "description": "Quantization type"
+                                },
+                                "method": {
+                                    "type": "string",
+                                    "enum": [
+                                        "None",
+                                        "AWQ",
+                                        "PTQ",
+                                        "GPTQ",
+                                        "GGUF",
+                                        "QAT",
+                                        "BitsAndBytes",
+                                        "SmoothQuant",
+                                        "HQQ",
+                                        "Quanto"
                                     ],
                                     "description": "Quantization method"
                                 }
@@ -154,10 +118,6 @@
                         "generation_args": {
                             "type": "object",
                             "properties": {
-                                "use_vllm": {
-                                    "type": "boolean",
-                                    "description": "Whether VLLM was used for inference"
-                                },
                                 "temperature": {
                                     "type": [
                                         "null",
@@ -191,6 +151,52 @@
                                         "type": "string"
                                     },
                                     "default": []
+                                },
+                                "seed": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Random seed parameter"
+                                },
+                                "frequency_penalty": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model’s likelihood to repeat the same line verbatim"
+                                },
+                                "presence_penalty": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model’s likelihood to talk about new topics."
+                                },
+                                "logprobs": {
+                                    "type": [
+                                        "null",
+                                        "number"
+                                    ],
+                                    "description": "Return log probabilities of the output tokens or not"
+                                },
+                                "top_logprobs": {
+                                    "type": "integer",
+                                    "description": "Number of most likely tokens (0-20) to return at each token position"
+                                },
+                                "logit_bias": {
+                                    "type": [
+                                        "null", 
+                                        "object"
+                                    ],
+                                    "description": "Map token Ids (float keys) to an associated bias value (integer)",
+                                    "additionalProperties": {
+                                        "type": "integer"
+                                    },
+                                    "propertyNames": {
+                                        "pattern": "^-?\\d+(\\.\\d+)?$",
+                                        "description": "Keys must be valid floats"
+                                    }
                                 }
                             }
                         }
@@ -565,6 +571,46 @@
                                         "decoded_token": {
                                             "type": "string",
                                             "description": "The decoded string representation of the token"
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "full_logprobs": {
+                    "additionalProperties": false,
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": [
+                                    "null"
+                                ]
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": [
+                                            "token_id",
+                                            "logprob",
+                                            "decoded_token"
+                                        ],
+                                        "properties": {
+                                            "token_id": {
+                                                "type": "number",
+                                                "description": "Id of token for which we keep its logprob"
+                                            },
+                                            "logprob": {
+                                                "type": "number",
+                                                "description": "Log probability of the token"
+                                            },
+                                            "decoded_token": {
+                                                "type": "string",
+                                                "description": "The decoded string representation of the token"
+                                            }
                                         }
                                     }
                                 }

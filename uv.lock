@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.12"
 
 [[package]]
@@ -503,6 +504,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "crfm-helm" },
     { name = "dacite" },
+    { name = "datamodel-code-generator" },
     { name = "numpy" },
     { name = "openai" },
     { name = "pandas" },
@@ -518,12 +520,14 @@ dev = [
     { name = "pylint" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "wget" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "crfm-helm", specifier = ">=0.5.6" },
     { name = "dacite", specifier = ">=1.9.2" },
+    { name = "datamodel-code-generator", specifier = ">=0.31.2" },
     { name = "datamodel-code-generator", marker = "extra == 'dev'", specifier = ">=0.31.2" },
     { name = "numpy", specifier = ">=2.3.1" },
     { name = "openai", specifier = ">=1.93.0" },
@@ -535,7 +539,9 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.2" },
     { name = "transformers", specifier = ">=4.53.1" },
+    { name = "wget", marker = "extra == 'dev'", specifier = ">=3.2" },
 ]
+provides-extras = ["dev"]
 
 [[package]]
 name = "filelock"
@@ -2448,6 +2454,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/a7/1a/9c522dd61b52939c2
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/87/abd57374044e1f627f0a905ac33c1a7daab35a3a815abfea4e1bafd3fdb1/weasel-0.4.1-py3-none-any.whl", hash = "sha256:24140a090ea1ac512a2b2f479cc64192fd1d527a7f3627671268d08ed5ac418c", size = 50270 },
 ]
+
+[[package]]
+name = "wget"
+version = "3.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/6a/62e288da7bcda82b935ff0c6cfe542970f04e29c756b0e147251b2fb251f/wget-3.2.zip", hash = "sha256:35e630eca2aa50ce998b9b1a127bb26b30dfee573702782aa982f875e3f16061", size = 10857 }
 
 [[package]]
 name = "wrapt"
