@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from enum import Enum
-from schema.eval_types import EvaluationResult
+from schema.eval_types import EvaluationLog
 from typing import Any, List, Union
 from pathlib import Path
 import json
@@ -44,7 +44,7 @@ class BaseEvaluationAdapter(ABC):
         pass
     
     @abstractmethod
-    def _transform_single(self, raw_data: Any) -> EvaluationResult:
+    def _transform_single(self, raw_data: Any) -> EvaluationLog:
         """
         Transform a single evaluation record.
         
@@ -52,14 +52,14 @@ class BaseEvaluationAdapter(ABC):
             raw_data: Single evaluation record in library-specific format
             
         Returns:
-            EvaluationResult in unified schema format
+            EvaluationLog in unified schema format
             
         Raises:
             TransformationError: If transformation fails
         """
         pass
     
-    def transform(self, data: Any) -> Union[EvaluationResult, List[EvaluationResult]]:
+    def transform(self, data: Any) -> Union[EvaluationLog, List[EvaluationLog]]:
         """
         Transform evaluation data to unified schema format.
         
@@ -86,7 +86,7 @@ class BaseEvaluationAdapter(ABC):
         except Exception as e:
             self._handle_transformation_error(e, "data transformation")
             
-    def transform_from_file(self, file_path: Union[str, Path]) -> Union[EvaluationResult, List[EvaluationResult]]:
+    def transform_from_file(self, file_path: Union[str, Path]) -> Union[EvaluationLog, List[EvaluationLog]]:
         """
         Load and transform evaluation data from file.
         
@@ -108,7 +108,7 @@ class BaseEvaluationAdapter(ABC):
             raise AdapterError(f"Failed to load file {file_path}: {str(e)}")
         
     @abstractmethod
-    def transform_from_directory(self, dir_path: Union[str, Path]) -> Union[EvaluationResult, List[EvaluationResult]]:
+    def transform_from_directory(self, dir_path: Union[str, Path]) -> Union[EvaluationLog, List[EvaluationLog]]:
         """
         Load and transform evaluation data from all files in a directory.
         

@@ -4,17 +4,16 @@ import json
 from enum import Enum
 from pydantic_core.core_schema import model_schema
 from pathlib import Path
-from typing import List
 
 from eval_converters.inspect.adapter import InspectAIAdapter
-from schema.eval_types import EvaluationResult
+from schema.eval_types import EvaluationLog
 
 def parse_args():
     parser = ArgumentParser()
 
     parser.add_argument('--log_path', type=str, default='tests/data/inspectai/data.json')
     parser.add_argument('--huggingface_dataset', type=str)
-    parser.add_argument('--output_dir', type=str, default='unified_schema/inspect_ai')
+    parser.add_argument('--output_dir', type=str, default='eval_converters/inspect')
 
     args = parser.parse_args()
     return args
@@ -36,26 +35,28 @@ class InspectEvalLogConverter:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def convert_to_unified_schema(self) -> List[EvaluationResult]:
+    def convert_to_unified_schema(self) -> EvaluationLog:
         return InspectAIAdapter().transform_from_file(self.log_path)
 
-    def save_to_file(self, unified_eval_log: List[EvaluationResult], output_filename: str) -> bool:
+    def save_to_file(self, unified_eval_log: EvaluationLog, output_filename: str) -> bool:
         try:
-            json_data = json.dumps(
-                [item.model_dump() for item in unified_eval_log], 
-                # indent=2,
-                cls=EnumEncoder
-            )
+            # data = unified_eval_log.model_dump()
+            json_str = unified_eval_log.model_dump_json(indent=2)
+
             with open(f'{self.output_dir}/{output_filename}', 'w') as json_file:
-                json.dump(json_data, json_file)
+                json_file.write(json_str)
+            # json_str = json.dumps(data, indent=2)
+            # with open(f'{self.output_dir}/{output_filename}', 'w') as json_file:
+            #     json.dump(json_str, json_file)
 
             print(f'Unified eval log was successfully saved to {output_filename} file.')
         except Exception as e:
             print(f"Problem with saving unified eval log to file: {e}")
             raise e
 
-    def save_to_hf_datasets(self, unified_eval_log: List[EvaluationResult]) -> bool:
-        pass #TODO
+    def save_to_hf_datasets(self, unified_eval_log: EvaluationLog) -> bool:
+        # TODO
+        pass
 
 
 if __name__ == '__main__':
@@ -66,9 +67,9 @@ if __name__ == '__main__':
         output_dir=args.output_dir
     )
     
-    unified_output: List[EvaluationResult] = inspect_converter.convert_to_unified_schema()
+    unified_output: EvaluationLog = inspect_converter.convert_to_unified_schema()
     if unified_output:
-        output_filename = f'{str(unified_output[0].evaluation_id)}.json'
+        output_filename = f'{str(unified_output.evaluation_id)}.json'
         inspect_converter.save_to_file(unified_output, output_filename)
     else:
         print("Missing unified schema result!")

@@ -6,12 +6,9 @@
     "required": [
         "schema_version",
         "evaluation_id",
-        "evaluation_sample_id",
-        "model",
-        "prompt_config",
-        "instance",
-        "output",
-        "evaluation"
+        "data_source",
+        "model_info",
+        "evaluation_results"
     ],
     "properties": {
         "schema_version": {
@@ -20,343 +17,21 @@
         },
         "evaluation_id": {
             "type": "string",
-            "description": "Unique identifier for this specific evaluation run, including the model configuration, prompt, instance, output and evaluation results"
+            "description": "Unique identifier for this specific evaluation run"
         },
-        "model": {
-            "type": "object",
-            "description": "Complete model specification including basic information, technical configuration and inference settings",
-            "required": [
-                "model_info",
-                "configuration",
-                "inference_settings"
-            ],
-            "properties": {
-                "model_info": {
-                    "type": "object",
-                    "description": "Basic identifying information about the model - represents the core identity and naming of the model without technical details",
-                    "required": [
-                        "name"
-                    ],
-                    "properties": {
-                        "name": {
-                            "type": "string",
-                            "description": "Model name and version (e.g., 'Llama-2-13b-chat-hf')"
-                        }
-                    }
-                },
-                "inference_settings": {
-                    "type": "object",
-                    "description": "Runtime settings and parameters for model inference - controls how the model generates outputs and performs during execution",
-                    "required": [
-                        "quantization"
-                    ],
-                    "properties": {
-                        "quantization": {
-                            "type": "object",
-                            "required": [
-                                "bit_precision",
-                                "quantization_type",
-                                "quantization_method"
-                            ],
-                            "properties": {
-                                "bit_precision": {
-                                    "type": "string",
-                                    "enum": [
-                                        "none",
-                                        "int8",
-                                        "int4",
-                                        "float16",
-                                        "float32"
-                                    ],
-                                    "description": "Quantization bit precision"
-                                },
-                                "quantization_type": {
-                                    "type": "string",
-                                    "enum": [
-                                        "none",
-                                        "dynamic",
-                                        "static"
-                                    ],
-                                    "description": "Quantization type"
-                                },
-                                "quantization_method": {
-                                    "type": "string",
-                                    "enum": [
-                                        "none",
-                                        "AWQ",
-                                        "PTQ",
-                                        "GPTQ",
-                                        "GGUF",
-                                        "QAT",
-                                        "BitsAndBytes",
-                                        "SmoothQuant",
-                                        "HQQ",
-                                        "Quanto"
-                                    ],
-                                    "description": "Quantization method"
-                                }
-                            }
-                        },
-                        "generation_args": {
-                            "type": "object",
-                            "properties": {
-                                "temperature": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Sampling temperature"
-                                },
-                                "top_p": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Nucleus sampling parameter"
-                                },
-                                "top_k": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Top-k sampling parameter"
-                                },
-                                "max_tokens": {
-                                    "type": "integer",
-                                    "minimum": 1,
-                                    "description": "Maximum number of tokens to generate"
-                                },
-                                "stop_sequences": {
-                                    "type": "array",
-                                    "description": "Sequences that stop generation",
-                                    "items": {
-                                        "type": "string"
-                                    },
-                                    "default": []
-                                },
-                                "seed": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Random seed parameter"
-                                },
-                                "frequency_penalty": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model’s likelihood to repeat the same line verbatim"
-                                },
-                                "presence_penalty": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model’s likelihood to talk about new topics."
-                                },
-                                "logprobs": {
-                                    "type": [
-                                        "null",
-                                        "number"
-                                    ],
-                                    "description": "Return log probabilities of the output tokens or not"
-                                },
-                                "top_logprobs": {
-                                    "type": "integer",
-                                    "description": "Number of most likely tokens (0-20) to return at each token position"
-                                },
-                                "logit_bias": {
-                                    "type": [
-                                        "null", 
-                                        "object"
-                                    ],
-                                    "description": "Map token Ids (float keys) to an associated bias value (integer)",
-                                    "additionalProperties": {
-                                        "type": "integer"
-                                    },
-                                    "propertyNames": {
-                                        "pattern": "^-?\\d+(\\.\\d+)?$",
-                                        "description": "Keys must be valid floats"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        "evaluation_provider_name": {
+            "type": "string",
+            "description": "Name of the provider of the evaluation results"
         },
-        "prompt_config": {
-            "type": "object",
-            "description": "Configuration of the prompt template and formatting",
-            "required": [
-                "prompt_class"
-            ],
-            "properties": {
-                "prompt_class": {
+        "dataset_source": {
+            "anyOf": [
+                {
                     "type": "string",
-                    "description": "Type of task and its formatting requirements",
-                    "enum": [
-                        "MultipleChoice",
-                        "OpenEnded",
-                        "Completion"
-                    ]
+                    "description": "RL for the source of the evaluation data"
                 },
-                "dimensions": {
+                {
                     "type": "object",
-                    "description": "Format-specific configuration dimensions",
-                    "required": [
-                        "choices_order",
-                        "enumerator",
-                        "instruction_phrasing",
-                        "separator",
-                        "shots"
-                    ],
-                    "properties": {
-                        "choices_order": {
-                            "type": "object",
-                            "required": [
-                                "method",
-                                "description"
-                            ],
-                            "properties": {
-                                "method": {
-                                    "type": "string",
-                                    "description": "The method to use for ordering choices"
-                                },
-                                "description": {
-                                    "type": "string",
-                                    "description": "Detailed explanation of the ordering method"
-                                }
-                            }
-                        },
-                        "demonstrations": {
-                            "type": "array",
-                            "description": "Array of demonstration examples used in few-shot prompting",
-                            "default": []
-                        },
-                        "enumerator": {
-                            "type": "string",
-                            "description": "Style of enumeration for multiple choice options",
-                            "enum": [
-                                "capitals",
-                                "lowercase",
-                                "numbers",
-                                "roman",
-                                "keyboard",
-                                "greek"
-                            ]
-                        },
-                        "instruction_phrasing": {
-                            "type": "object",
-                            "required": [
-                                "name",
-                                "text"
-                            ],
-                            "properties": {
-                                "name": {
-                                    "type": "string",
-                                    "description": "Name of the instruction template"
-                                },
-                                "text": {
-                                    "type": "string",
-                                    "description": "Template text with placeholders for question and choices (or more)"
-                                }
-                            }
-                        },
-                        "separator": {
-                            "type": "string",
-                            "description": "Character(s) used to separate multiple choice options",
-                            "enum": [
-                                "\\s",
-                                "\n",
-                                ", ",
-                                "; ",
-                                " | ",
-                                " OR ",
-                                " or "
-                            ]
-                        },
-                        "shots": {
-                            "type": "integer",
-                            "description": "Number of examples provided in the prompt",
-                            "minimum": 0,
-                            "maximum": 10
-                        }
-                    }
-                }
-            }
-        },
-        "instance": {
-            "type": "object",
-            "description": "Specific instance and its metadata",
-            "required": [
-                "task_type",
-                "raw_input",
-                "language",
-                "sample_identifier"
-            ],
-            "additionalProperties": true,
-            "properties": {
-                "task_type": {
-                    "type": "string",
-                    "description": "Type of the task",
-                    "enum": [
-                        "classification",
-                        "generation"
-                    ]
-                },
-                "raw_input": {
-                    "anyOf": [
-                        {
-                            "type": "string",
-                            "description": "Original input text as it appears in the dataset, without any formatting or prompting"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "role": {
-                                        "type": "string"
-                                    },
-                                    "content": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "role",
-                                    "content"
-                                ]
-                            },
-                            "description": "Array of conversation turns with roles and content"
-                        }
-                    ]
-                },
-                "language": {
-                    "type": "string",
-                    "description": "Language of the input text",
-                    "examples": [
-                        "en",
-                        "fr",
-                        "de",
-                        "es",
-                        "it",
-                        "pt",
-                        "nl",
-                        "pl",
-                        "ru",
-                        "tr",
-                        "ar",
-                        "ja",
-                        "ko",
-                        "zh",
-                        "he"
-                    ]
-                },
-                "sample_identifier": {
-                    "type": "object",
-                    "description": "Metadata to help identify and match the sample to the dataset",
+                    "description": "Details about dataset used for evaluation",
                     "required": [
                         "dataset_name"
                     ],
@@ -371,266 +46,234 @@
                         },
                         "hf_split": {
                             "type": "string",
-                            "description": "HuggingFace split identifier",
-                            "enum": [
-                                "train",
-                                "test",
-                                "validation"
-                            ]
+                            "description": "One of train, val or test."
                         },
-                        "hf_index": {
+                        "samples_number": {
                             "type": "integer",
-                            "description": "Index in the HuggingFace dataset"
+                            "description": "Number of samples in the dataset"
+                        },
+                        "sample_ids": {
+                            "type": "array",
+                            "description": "Array of sample ids used for evaluation",
+                            "items": {
+                                "type": "integer"
+                            }
                         }
                     }
+                }
+            ]
+        },
+        "model_info": {
+            "type": "object",
+            "description": "Complete model specification including basic information, technical configuration and inference settings",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Model name in HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct)"
                 },
-                "classification_fields": {
-                    "type": "object",
-                    "description": "Fields specific to classification tasks",
-                    "if": {
+                "developer": {
+                    "type": "string",
+                    "description": "Name of organization that provides the model (e.g. 'OpenAI')"
+                },
+                "inference_platform": {
+                    "type": "string",
+                    "description": "Description of platform used to run the evaluations (e.g. local machine, Bedrock)"
+                }
+            }
+        },
+        "evaluation_results": {
+            "type": "array",
+            "description": "Array of evaluation results",
+            "items": {
+                "type": "object",
+                "required": [
+                    "evaluation_name",
+                    "metric_config",
+                    "score_details"
+                ],
+                "properties": {
+                    "evaluation_name": {
+                        "type": "string",
+                        "description": "Name of the evaluation"
+                    },
+                    "metric_config": {
+                        "type": "object",
+                        "description": "Details about the metric",
+                        "required": [
+                            "lower_is_better"
+                        ],
                         "properties": {
-                            "task_type": {
-                                "const": "classification"
+                            "evaluation_description": {
+                                "type": "string",
+                                "description": "Description of the evaluation"
+                            },
+                            "lower_is_better": {
+                                "type": "boolean",
+                                "description": "Whether a lower score is better"
+                            },
+                            "score_type": {
+                                "type": "string",
+                                "description": "Type of score",
+                                "enum": [
+                                    "binary",
+                                    "continuous",
+                                    "levels"
+                                ]
+                            },
+                            "score_level_names": {
+                                "type": "array",
+                                "description": "Names of the score levels",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "min_score": {
+                                "type": "number",
+                                "description": "Minimum possible score"
+                            },
+                            "max_score": {
+                                "type": "number",
+                                "description": "Maximum possible score"
                             }
                         }
                     },
-                    "then": {
+                    "score_details": {
+                        "type": "string",
+                        "description": "The score for the evaluation and related details",
                         "required": [
-                            "question",
-                            "choices",
-                            "ground_truth"
+                            "score"
                         ],
                         "properties": {
-                            "full_input": {
-                                "type": "string",
-                                "description": "Full input text, including few shot examples and question"
+                            "score": {
+                                "type": "number",
+                                "description": "The score for the evaluation"
                             },
-                            "question": {
+                            "details": {
                                 "type": "string",
-                                "description": "The actual question"
+                                "description": "Any additional details about the score"
+                            }
+                        }
+                    },
+                    "generation_config": {
+                        "type": "object",
+                        "generation_args": {
+                                "type": "object",
+                                "description": "Parameters used to generate results - properties may vary by model type",
+                                "properties": {
+                                    "temperature": {
+                                        "type": [
+                                            "null",
+                                            "number"
+                                        ],
+                                        "description": "Sampling temperature"
+                                    },
+                                    "top_p": {
+                                        "type": [
+                                            "null",
+                                            "number"
+                                        ],
+                                        "description": "Nucleus sampling parameter"
+                                    },
+                                    "top_k": {
+                                        "type": [
+                                            "null",
+                                            "number"
+                                        ],
+                                        "description": "Top-k sampling parameter"
+                                    },
+                                    "max_tokens": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "description": "Maximum number of tokens to generate"
+                                    }
+                                },
+                                "additionalProperties": true
+                        },
+                        "additional_details": {
+                            "type": "string",
+                            "description": "Additional details about how the results for this metric were generated."
+                        }
+                    }
+                }
+            }
+
+        },
+        "detailed_evaluation_results": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "description": "Link to detailed evaluation data"
+                },
+                {
+                    "type": "array",
+                    "description": "Array of evaluation results",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "sample_id",
+                            "input",
+                            "ground_truth",
+                            "response"
+                        ],
+                        "properties": {
+                            "sample_id": {
+                                "type": "string",
+                                "description": "Simple sample ID"
+                            },
+                            "input": {
+                                "type": "string",
+                                "description": "Raw input for the model"
+                            },
+                            "ground_truth": {
+                                "type": "string",
+                                "description": "Target reponsse"
+                            },
+                            "response": {
+                                "type": "string",
+                                "description": "Response from the model"
                             },
                             "choices": {
                                 "type": "array",
-                                "description": "Array of all multiple choice options",
+                                "description": "Array of possible responses",
                                 "items": {
-                                    "type": "object",
-                                    "required": [
-                                        "id",
-                                        "text"
-                                    ],
-                                    "properties": {
-                                        "id": {
-                                            "type": "string",
-                                            "description": "Choice identifier (e.g., 'A', '1', etc.)"
-                                        },
-                                        "text": {
-                                            "type": "string",
-                                            "description": "Choice text"
-                                        }
-                                    }
+                                    "type": "string"
                                 }
                             },
-                            "ground_truth": {
-                                "required": [
-                                    "id",
-                                    "text"
-                                ],
-                                "description": "The correct answer for the classification task",
-                                "properties": {
-                                    "id": {
-                                        "type": "string",
-                                        "description": "Choice identifier (e.g., 'A', '1', etc.)"
-                                    },
-                                    "text": {
-                                        "type": "string",
-                                        "description": "Choice text"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "prompt_logprobs": {
-                    "type": "array",
-                    "description": "Array of token probability data, with first element being 'None' and subsequent elements being arrays of token information",
-                    "items": {
-                        "oneOf": [
-                            {
-                                "type": [
-                                    "null",
-                                    "string"
-                                ]
-                            },
-                            {
+                            "full_logprobs": {
                                 "type": "array",
                                 "items": {
-                                    "type": "object",
-                                    "required": [
-                                        "token_id",
-                                        "logprob",
-                                        "rank",
-                                        "decoded_token"
-                                    ],
-                                    "properties": {
-                                        "token_id": {
-                                            "type": "number",
-                                            "description": "Index position of the token in the sequence"
-                                        },
-                                        "logprob": {
-                                            "type": "number",
-                                            "description": "Log probability of the token"
-                                        },
-                                        "rank": {
-                                            "type": "integer",
-                                            "description": "Rank of the token in the model's vocabulary"
-                                        },
-                                        "decoded_token": {
-                                            "type": "string",
-                                            "description": "The decoded string representation of the token"
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": [
+                                            "token_id",
+                                            "logprob",
+                                            "decoded_token"
+                                        ],
+                                        "properties": {
+                                            "token_id": {
+                                                "type": "number",
+                                                "description": "Id of token for which we keep its logprob"
+                                            },
+                                            "logprob": {
+                                                "type": "number",
+                                                "description": "Log probability of the token"
+                                            },
+                                            "decoded_token": {
+                                                "type": "string",
+                                                "description": "The decoded string representation of the token"
+                                            }
                                         }
                                     }
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        "output": {
-            "type": "object",
-            "description": "Model's response and associated probability metrics",
-            "required": [
-                "response"
-            ],
-            "properties": {
-                "response": {
-                    "type": "string",
-                    "description": "The model's complete text response"
-                },
-                "cumulative_logprob": {
-                    "type": [
-                        "number",
-                        "null"
-                    ],
-                    "description": "Cumulative log probability of the generated sequence from VLLM"
-                },
-                "generated_tokens_logprobs": {
-                    "additionalProperties": false,
-                    "items": {
-                        "oneOf": [
-                            {
-                                "type": [
-                                    "null",
-                                    "string"
-                                ]
-                            },
-                            {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "required": [
-                                        "token_id",
-                                        "logprob",
-                                        "rank",
-                                        "decoded_token"
-                                    ],
-                                    "properties": {
-                                        "token_id": {
-                                            "type": "number",
-                                            "description": "Index position of the token in the sequence"
-                                        },
-                                        "logprob": {
-                                            "type": "number",
-                                            "description": "Log probability of the token"
-                                        },
-                                        "rank": {
-                                            "type": "integer",
-                                            "description": "Rank of the token in the model's vocabulary"
-                                        },
-                                        "decoded_token": {
-                                            "type": "string",
-                                            "description": "The decoded string representation of the token"
-                                        }
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        "evaluation": {
-            "type": "object",
-            "description": "Evaluation metrics and ground truth",
-            "required": [
-                "ground_truth",
-                "evaluation_method",
-                "score"
-            ],
-            "properties": {
-                "evaluation_method": {
-                    "type": "object",
-                    "description": "Method used to evaluate the answer, including predefined methods and user-defined methods.",
-                    "properties": {
-                        "method_name": {
-                            "type": "string",
-                            "description": "Name of the evaluation method. Can be a predefined method or a user-defined method."
-                        },
-                        "description": {
-                            "type": "string",
-                            "description": "Detailed explanation of how the evaluation method works. For user-defined methods, this is required."
-                        },
-                        "parameters": {
-                            "type": "object",
-                            "description": "Optional parameters used by the evaluation method. Allows custom configuration.",
-                            "additionalProperties": true
-                        }
-                    },
-                    "required": [
-                        "method_name",
-                        "description"
-                    ],
-                    "if": {
-                        "properties": {
-                            "method_name": {
-                                "enum": [
-                                    "label_only_match",
-                                    "content_similarity"
-                                ]
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "description": {
-                                "type": "string",
-                                "enum": [
-                                    "Compares only the choice identifier/label to evaluate the response.",
-                                    "Finds the most similar answer among the given choices by comparing the textual content"
-                                ]
-                            }
-                        }
-                    },
-                    "else": {
-                        "properties": {
-                            "description": {
-                                "type": "string",
-                                "description": "Explanation of the custom evaluation method."
+                                }  
                             }
                         }
                     }
-                },
-                "ground_truth": {
-                    "type": "string",
-                    "description": "The correct answer for evaluation"
-                },
-                "score": {
-                    "type": "number",
-                    "description": "Binary score indicating whether the model's answer was correct (1.0) or incorrect (0.0)",
-                    "minimum": 0,
-                    "maximum": 1
                 }
-            }
+            ]
         }
     }
 }

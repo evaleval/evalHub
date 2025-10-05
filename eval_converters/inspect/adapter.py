@@ -10,30 +10,18 @@ from typing import Dict, List, Literal, Optional, Union
 
 from schema import SCHEMA_VERSION
 from schema.eval_types import (
-	EvaluationResult,
-	ModelInfo,
-    Dimensions,
-	GenerationArgs,
-	InferenceSettings,
-    InstructionPhrasing,
-	Instance,
-	Output,
-	Evaluation,
-	EvaluationMethod,
-	PromptConfig,
-	PromptClass,
-	Separator,
-	TaskType,
-	BitPrecision,
-	SampleIdentifier,
-	Quantization,
-	Model
+    DatasetSource,
+    DetailedEvaluationResult,
+    EvaluationLog,
+    EvaluationResult,
+    ScoreDetails,
+    MetricConfig,
+    ScoreType,
+    ModelInfo
 )
 
 from eval_converters.common.adapter import BaseEvaluationAdapter, SupportedLibrary
 from eval_converters.common.error import AdapterError
-from eval_converters.common.utils import infer_quantization, infer_generation_args_default_values
-from eval_converters.inspect.utils import detect_prompt_class#, get_adapter_class_from_method_string
 from transformers import AutoConfig
 
 class InspectAIAdapter(BaseEvaluationAdapter):
@@ -76,151 +64,76 @@ class InspectAIAdapter(BaseEvaluationAdapter):
         else:
             raise NotImplemented('Metric other than accuracy do not supported at this moment.')
 
-    def _transform_single(self, raw_data: EvalLog) -> List[EvaluationResult]:
+    def _transform_single(self, raw_data: EvalLog) -> EvaluationLog:
         eval_spec: EvalSpec = raw_data.eval
-        # 1. Model
-        # 1.1. ModelInfo
-        
+
+        evaluation_id = f'inspect_ai_{str(eval_spec.eval_id)}_dataset_{eval_spec.dataset.name}_model_{eval_spec.model.replace('/', '_')}'
+
+        dataset_source = DatasetSource(
+            dataset_name=eval_spec.dataset.name.split('/')[-1],
+            hf_repo=eval_spec.dataset.location,
+            samples_number=eval_spec.dataset.samples,
+            sample_ids=eval_spec.dataset.sample_ids
+        )
+        print(dataset_source)
+
         model_info = ModelInfo(
-            name=eval_spec.model
+            name=eval_spec.model,
+            developer=eval_spec.model.split('/')[0],
+            inference_platform="/".join(eval_spec.model.split('/')[:-1])
         )
 
-        # 1.2. InferenceSettings
-        precision, quant_method, quant_type = infer_quantization(eval_spec.model)
-        quantization = Quantization(
-            bit_precision=precision,
-            quantization_method=quant_method,
-            quantization_type=quant_type
-        )
+        results = raw_data.results
+        evaluation_results = []
 
-        generate_config: GenerateConfig = eval_spec.model_generate_config
-        generation_args_default: GenerationArgs = infer_generation_args_default_values(eval_spec.model)
+        generation_config = {
+            gen_config: value 
+            for gen_config, value in vars(eval_spec.model_generate_config).items() if value is not None
+        }
 
-        inference_settings = InferenceSettings(
-            quantization=quantization,
-            generation_args=GenerationArgs(
-                temperature=generate_config.temperature or generation_args_default.temperature,
-                top_p=generate_config.top_p or generation_args_default.top_p,
-                top_k=generate_config.top_k or generation_args_default.top_k,
-                max_tokens=generate_config.max_tokens or generation_args_default.max_tokens,
-                stop_sequences=generate_config.stop_seqs or generation_args_default.stop_sequences,
-                seed=generate_config.seed or generation_args_default.seed,
-                frequency_penalty=generate_config.frequency_penalty or generation_args_default.frequency_penalty,
-                presence_penalty=generate_config.presence_penalty or generation_args_default.presence_penalty,
-                logit_bias=generate_config.logit_bias or generation_args_default.logit_bias,
-                logprobs=generate_config.logprobs or generation_args_default.logprobs,
-                top_logprobs=generate_config.top_logprobs or generation_args_default.top_logprobs
-            )
-        )
+        for scorer_results in results.scores:
+            scorer_name = scorer_results.scorer
+            for metric in scorer_results.metrics:
+                metric_info = scorer_results.metrics[metric]
+                if metric_info.name != 'stderr':
+                    evaluation_results.append(EvaluationResult(
+                        evaluation_name=scorer_name,
+                        metric_config=MetricConfig(
+                            evaluation_description=metric_info.name,
+                            lower_is_better=False # probably there is no access to such info
+                        ),
+                        score_details=ScoreDetails(
+                            score=metric_info.value
+                        ),
+                        generation_config=generation_config
+                    ))
 
-        model = Model(
-            model_info=model_info,
-            inference_settings=inference_settings,
-        )
-
-        # 2. PromptConfig
-        # 2.1. PromptClass
-
-        prompt_class = detect_prompt_class(raw_data.plan.steps[0].solver)
-        prompt_config = PromptConfig(
-            prompt_class=prompt_class,
-            instruction_phrasing=InstructionPhrasing(
-                name='template',
-                text=raw_data.plan.steps[0].params.get('template', '')
-            ),
-            dimensions=None
-        )
-
-        if raw_data.results:
-            metrics = raw_data.results.scores[0].metrics.keys()
-            metrics = [m for m in metrics if 'stderr' not in m]
-        elif eval_spec.scorers:
-            metrics = [
-                metric.name.split('/')[-1] for metric in eval_spec.scorers[0].metrics
-                if 'stderr' not in metric.name 
-            ]
-        else:
-            metrics = []
-
-        evaluation_results: List[EvaluationResult] = []
-
-        dataset = eval_spec.dataset
-        samples = raw_data.samples
-
-        for sample in samples:
-            sample_identifier = SampleIdentifier(
-                dataset_name=dataset.name,
-                hf_repo=dataset.location,
-                hf_index=sample.id,
-                hf_split=None
-            )
-
-            # 3.2. ClassificationFields (required for classification tasks)
-            classification_fields = {}
-            if prompt_class == PromptClass.MultipleChoice: 
-                classification_fields = {
-                    "full_input": sample.messages[0].content,
-                    "question": sample.input,
-                    "choices": sample.choices,
-                    "ground_truth": sample.target,
-                }
-
-            instance = Instance(
-                task_type=TaskType.classification if prompt_class == PromptClass.MultipleChoice else TaskType.generation,
-                raw_input=sample.input,
-                language='en',  # FIXME: other languages?
-                sample_identifier=sample_identifier,
-                classification_fields=classification_fields,
-            )
-            
-            # 4. Output
+        detailed_evaluation_results = []
+        for sample in raw_data.samples:
             if sample.scores:
                 response = sample.scores.get('choice').answer
             else:
                 response = sample.output.choices[0].message.content
             
-            output = Output(
-                response=sample.output.choices[0].message.content,
-                explanation= sample.scores['choice'].explanation or sample.output.choices[0].message.content or None,
-                generated_tokens_logprobs=sample.output.choices[0].logprobs
-            )
-
-            # 5. Evaluation
-            metric_name = metrics[0] if metrics else None
-            evaluation_method = EvaluationMethod(
-                method_name=metric_name,
-                description=f'{metric_name} is metric used for evaluation.'
-            )
-
-            score = self._get_score(
-                response,
-                sample.target,
-                metric_name
-            )
-
-            evaluation = Evaluation(
-                evaluation_method=evaluation_method,
-                ground_truth=sample.target,
-                score=score,
-            )
-
-            evaluation_id = f'inspect_ai_{str(eval_spec.eval_id)}_dataset_{sample_identifier.dataset_name}'
-            evaluation_sample_id = f'inspect_ai_{str(eval_spec.eval_id)}_dataset_{sample_identifier.dataset_name}_id_{sample_identifier.hf_index}'
-
-            evaluation_results.append(
-                EvaluationResult(
-                    schema_version=SCHEMA_VERSION,
-                    evaluation_id=evaluation_id.replace('/', '_'),
-                    evaluation_sample_id=evaluation_sample_id.replace('/', '_'),
-                    model=model,
-                    prompt_config=prompt_config,
-                    instance=instance,
-                    output=output,
-                    evaluation=evaluation,
+            detailed_evaluation_results.append(
+                DetailedEvaluationResult(
+                    sample_id=sample.id,
+                    input=sample.input,
+                    ground_truth=sample.target,
+                    response=response,
+                    choices=sample.choices
                 )
             )
 
-        return evaluation_results
+        return EvaluationLog(
+            schema_version=SCHEMA_VERSION,
+            evaluation_id=evaluation_id.replace('/', '_'),
+            evaluation_provider_name='',
+            dataset_source=dataset_source,
+            model_info=model_info,
+            evaluation_results=evaluation_results,
+            evaluations_results_per_sample=detailed_evaluation_results
+        )
         
     def _load_file(self, file_path) -> EvalLog:
         return read_eval_log(file_path)
