@@ -26,12 +26,8 @@ from eval_converters.common.error import AdapterError
 
 class InspectAIAdapter(BaseEvaluationAdapter):
     """
-    Adapter for transforming evaluation outputs from the Inspect AI library
-    into the unified schema format.
+    Adapter for transforming evaluation outputs from the Inspect AI library into the unified schema format.
     """
-    SCENARIO_STATE_FILE = 'scenario_state.json'
-    RUN_SPEC_FILE = 'run_spec.json'
-    SCENARIO_FILE = 'scenario.json'
 
     @property
     def supported_library(self) -> SupportedLibrary:

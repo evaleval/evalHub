@@ -16,7 +16,7 @@ from schema.eval_types import (
 def parse_args():
     parser = ArgumentParser()
 
-    parser.add_argument('--log_path', type=str, default='tests/data/inspectai/data.json')
+    parser.add_argument('--log_path', type=str, default='tests/data/inspect/data.json')
     parser.add_argument('--huggingface_dataset', type=str)
     parser.add_argument('--output_dir', type=str, default='eval_converters/inspect')
     parser.add_argument('--source_organization_name', type=str, default='Unknown', help='Orgnization which pushed evaluation to the evalHub.')
