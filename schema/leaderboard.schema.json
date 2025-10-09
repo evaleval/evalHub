@@ -48,6 +48,16 @@
                         "type": "string"
                     }
                 },
+                "evaluator_relationship": {
+                    "type": "string",
+                    "description": "Relationship between the evaluator and the model",
+                    "enum": [
+                        "first_party",
+                        "third_party",
+                        "collaborative",
+                        "other"
+                    ]
+                },
                 "evaluation_timestamp": {
                     "type": "string",
                     "description": "Timestamp for when the evaluations were run"
@@ -64,10 +74,6 @@
                 "name": {
                     "type": "string",
                     "description": "Model name in HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct)"
-                },
-                "provider_name": {
-                    "type": "string",
-                    "description": "Name of the provider of the leaderboard results."
                 },
                 "developer": {
                     "type": "string",
@@ -118,20 +124,59 @@
                                     "levels"
                                 ]
                             },
-                            "score_level_names": {
+                            "level_names": {
                                 "type": "array",
                                 "description": "Names of the score levels",
                                 "items": {
                                     "type": "string"
                                 }
                             },
+                            "level_metadata": {
+                                "type": "array",
+                                "description": "Additional Description for each Score Level",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "has_unknown_level": {
+                                "type": "boolean",
+                                "description": "Indicates whether there is an Unknown Level - if True, then a score of -1 will be treated as Unknown"
+                            },
                             "min_score": {
                                 "type": "number",
-                                "description": "Minimum possible score"
+                                "description": "Minimum possible score for continuous metric"
                             },
                             "max_score": {
                                 "type": "number",
-                                "description": "Maximum possible score"
+                                "description": "Maximum possible score for continuous metric"
+                            }
+                        },
+                        "if": {
+                            "properties": {
+                                "score_type": {
+                                    "const": "levels"
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "level_names",
+                                "has_unknown_level"
+                            ]
+                        },
+                        "else": {
+                            "if": {
+                                "properties": {
+                                    "score_type": {
+                                        "const": "continuous"
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": [
+                                    "min_score",
+                                    "max_score"
+                                ]
                             }
                         }
                     },
@@ -147,8 +192,9 @@
                                 "description": "The score for the evaluation"
                             },
                             "details": {
-                                "type": "string",
-                                "description": "Any additional details about the score"
+                                "type": "object",
+                                "description": "Any additional details about the score",
+                                "additionalProperties": true
                             }
                         }
                     },
