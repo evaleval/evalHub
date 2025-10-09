@@ -6,9 +6,9 @@
     "required": [
         "schema_version",
         "evaluation_id",
-        "leaderboard_name",
         "retrieved_timestamp",
         "source_data_urls",
+        "leaderboard_name",
         "source_metadata",
         "model_info",
         "evaluation_results"
@@ -22,10 +22,6 @@
             "type": "string",
             "description": "Unique identifier for this specific evaluation run. Use org_name/eval_name/retrieved_timestamp format"
         },
-        "leaderboard_name": {
-            "type": "string",
-            "description": "Title of the Evaluation"
-        },
         "retrieved_timestamp": {
             "type": "string",
             "description": "Timestamp for when this record was created"
@@ -36,6 +32,14 @@
             "items": {
                 "type": "string"
             }
+        },
+        "leaderboard_name": {
+            "type": "string",
+            "description": "Title of the source leaderboard for the evaluation."
+        },
+        "evaluation_platform_name": {
+            "type": "string",
+            "description": "Title of the platform used for the evaluation."
         },
         "source_metadata": {
             "type": "object",
