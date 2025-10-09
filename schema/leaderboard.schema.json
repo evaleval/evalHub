@@ -8,6 +8,7 @@
         "evaluation_id",
         "leaderboard_name",
         "retrieved_timestamp",
+        "source_data_urls",
         "source_metadata",
         "model_info",
         "evaluation_results"
@@ -23,30 +24,38 @@
         },
         "leaderboard_name": {
             "type": "string",
-            "description": "Name of the leaderboard"
+            "description": "Title of the Evaluation"
         },
         "retrieved_timestamp": {
             "type": "string",
             "description": "Timestamp for when this record was created"
         },
+        "source_data_urls": {
+            "type": "array",
+            "description": "URLs for the source of the evaluation data",
+            "items": {
+                "type": "string"
+            }
+        },
         "source_metadata": {
             "type": "object",
             "description": "Metadata about the source of the leaderboard data",
             "required": [
-                "source_name",
-                "source_urls"
+                "source_organization_name",
+                "evaluator_relationship"
             ],
             "properties": {
-                "source_name": {
+                "source_organization_name": {
                     "type": "string",
-                    "description": "Name of the source of the leaderboard data"
+                    "description": "Name of the organization that provides the data"
                 },
-                "source_urls": {
-                    "type": "array",
-                    "description": "URLs for the source of the leaderboard data",
-                    "items": {
-                        "type": "string"
-                    }
+                "source_organization_url": {
+                    "type": "string",
+                    "description": "URL for the organization that provides the data"
+                },
+                "source_organization_logo_url": {
+                    "type": "string",
+                    "description": "URL for the Logo for the organization that provides the data"
                 },
                 "evaluator_relationship": {
                     "type": "string",
@@ -57,10 +66,6 @@
                         "collaborative",
                         "other"
                     ]
-                },
-                "evaluation_timestamp": {
-                    "type": "string",
-                    "description": "Timestamp for when the evaluations were run"
                 }
             }
         },
@@ -99,6 +104,10 @@
                     "evaluation_name": {
                         "type": "string",
                         "description": "Name of the evaluation"
+                    },
+                    "evaluation_timestamp": {
+                        "type": "string",
+                        "description": "Timestamp for when the evaluations were run"
                     },
                     "metric_config": {
                         "type": "object",
