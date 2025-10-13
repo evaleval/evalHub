@@ -6,6 +6,10 @@
     "required": [
         "schema_version",
         "evaluation_id",
+        "retrieved_timestamp",
+        "source_data_urls",
+        "leaderboard_name",
+        "source_metadata",
         "model_info",
         "evaluation_results"
     ],
@@ -16,27 +20,69 @@
         },
         "evaluation_id": {
             "type": "string",
-            "description": "Unique identifier for this specific evaluation run"
+            "description": "Unique identifier for this specific evaluation run. Use org_name/eval_name/retrieved_timestamp format"
+        },
+        "retrieved_timestamp": {
+            "type": "string",
+            "description": "Timestamp for when this record was created"
+        },
+        "source_data_urls": {
+            "type": "array",
+            "description": "URLs for the source of the evaluation data",
+            "items": {
+                "type": "string"
+            }
+        },
+        "leaderboard_name": {
+            "type": "string",
+            "description": "Title of the source leaderboard for the evaluation."
+        },
+        "evaluation_platform_name": {
+            "type": "string",
+            "description": "Title of the platform used for the evaluation."
+        },
+        "source_metadata": {
+            "type": "object",
+            "description": "Metadata about the source of the leaderboard data",
+            "required": [
+                "source_organization_name",
+                "evaluator_relationship"
+            ],
+            "properties": {
+                "source_organization_name": {
+                    "type": "string",
+                    "description": "Name of the organization that provides the data"
+                },
+                "source_organization_url": {
+                    "type": "string",
+                    "description": "URL for the organization that provides the data"
+                },
+                "source_organization_logo_url": {
+                    "type": "string",
+                    "description": "URL for the Logo for the organization that provides the data"
+                },
+                "evaluator_relationship": {
+                    "type": "string",
+                    "description": "Relationship between the evaluator and the model",
+                    "enum": [
+                        "first_party",
+                        "third_party",
+                        "collaborative",
+                        "other"
+                    ]
+                }
+            }
         },
         "model_info": {
             "type": "object",
             "description": "Complete model specification including basic information, technical configuration and inference settings",
             "required": [
-                    "name",
-                    "source_url"
+                    "name"
             ],
             "properties": {
                 "name": {
                     "type": "string",
                     "description": "Model name in HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct)"
-                },
-                "source_url": {
-                    "type": "string",
-                    "description": "URL for the source of the evaluation data"
-                },
-                "provider_name": {
-                    "type": "string",
-                    "description": "Name of the provider of the evaluation results."
                 },
                 "developer": {
                     "type": "string",
@@ -63,6 +109,10 @@
                         "type": "string",
                         "description": "Name of the evaluation"
                     },
+                    "evaluation_timestamp": {
+                        "type": "string",
+                        "description": "Timestamp for when the evaluations were run"
+                    },
                     "metric_config": {
                         "type": "object",
                         "description": "Details about the metric",
@@ -87,20 +137,59 @@
                                     "levels"
                                 ]
                             },
-                            "score_level_names": {
+                            "level_names": {
                                 "type": "array",
                                 "description": "Names of the score levels",
                                 "items": {
                                     "type": "string"
                                 }
                             },
+                            "level_metadata": {
+                                "type": "array",
+                                "description": "Additional Description for each Score Level",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "has_unknown_level": {
+                                "type": "boolean",
+                                "description": "Indicates whether there is an Unknown Level - if True, then a score of -1 will be treated as Unknown"
+                            },
                             "min_score": {
                                 "type": "number",
-                                "description": "Minimum possible score"
+                                "description": "Minimum possible score for continuous metric"
                             },
                             "max_score": {
                                 "type": "number",
-                                "description": "Maximum possible score"
+                                "description": "Maximum possible score for continuous metric"
+                            }
+                        },
+                        "if": {
+                            "properties": {
+                                "score_type": {
+                                    "const": "levels"
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "level_names",
+                                "has_unknown_level"
+                            ]
+                        },
+                        "else": {
+                            "if": {
+                                "properties": {
+                                    "score_type": {
+                                        "const": "continuous"
+                                    }
+                                }
+                            },
+                            "then": {
+                                "required": [
+                                    "min_score",
+                                    "max_score"
+                                ]
                             }
                         }
                     },
@@ -116,8 +205,9 @@
                                 "description": "The score for the evaluation"
                             },
                             "details": {
-                                "type": "string",
-                                "description": "Any additional details about the score"
+                                "type": "object",
+                                "description": "Any additional details about the score",
+                                "additionalProperties": true
                             }
                         }
                     },
