@@ -1,8 +1,8 @@
 {
   "schema_version": "0.0.1",
-  "evaluation_id": "inspect_ai_KB3YEFLdRjAr4kNgdR7ZNa_dataset_bigbio_pubmed_qa_model_openai_azure_gpt-4o-mini",
-  "evaluation_provider_name": "",
-  "dataset_source": {
+  "evaluation_id": "inspect_ai_openai_azure_gpt-4o-mini_bigbio_pubmed_qa_2025-07-03T16:44:30+02:00",
+  "retrieved_timestamp": "2025-07-03T16:44:30+02:00",
+  "source_data": {
     "dataset_name": "pubmed_qa",
     "hf_repo": "bigbio/pubmed_qa",
     "hf_split": null,
@@ -12,6 +12,16 @@
       26163474
     ]
   },
+  "evaluation_source": {
+    "evaluation_source_name": "inspect_ai",
+    "evaluation_source_type": "evaluation_platform"
+  },
+  "source_metadata": {
+    "source_organization_name": "Unknown",
+    "source_organization_url": null,
+    "source_organization_logo_url": null,
+    "evaluator_relationship": "other"
+  },
   "model_info": {
     "name": "openai/azure/gpt-4o-mini",
     "developer": "openai",
@@ -20,11 +30,14 @@
   "evaluation_results": [
     {
       "evaluation_name": "choice",
+      "evaluation_timestamp": "2025-07-03T16:44:38+02:00",
       "metric_config": {
         "evaluation_description": "accuracy",
         "lower_is_better": false,
         "score_type": null,
-        "score_level_names": null,
+        "level_names": null,
+        "level_metadata": null,
+        "has_unknown_level": null,
         "min_score": null,
         "max_score": null
       },
@@ -35,7 +48,7 @@
       "generation_config": {}
     }
   ],
-  "evaluations_results_per_sample": [
+  "detailed_evaluation_results": [
     {
       "sample_id": "12377809",
       "input": "Context: Dyschesia can be provoked by inappropriate defecation movements. The aim of this prospective study was to demonstrate dysfunction of the anal sphincter and/or the musculus (m.) puborectalis in patients with dyschesia using anorectal endosonography. Twenty consecutive patients with a medical history of dyschesia and a control group of 20 healthy subjects underwent linear anorectal endosonography (Toshiba models IUV 5060 and PVL-625 RT). In both groups, the dimensions of the anal sphincter and the m. puborectalis were measured at rest, and during voluntary squeezing and straining. Statistical analysis was performed within and between the two groups. The anal sphincter became paradoxically shorter and/or thicker during straining (versus the resting state) in 85% of patients but in only 35% of control subjects. Changes in sphincter length were statistically significantly different (p<0.01, chi(2) test) in patients compared with control subjects. The m. puborectalis became paradoxically shorter and/or thicker during straining in 80% of patients but in only 30% of controls. Both the changes in length and thickness of the m. puborectalis were significantly different (p<0.01, chi(2) test) in patients versus control subjects.\nQuestion: Is anorectal endosonography valuable in dyschesia?",
@@ -45,7 +58,8 @@
         "yes",
         "no",
         "maybe"
-      ]
+      ],
+      "full_logprobs": null
     },
     {
       "sample_id": "26163474",
@@ -56,7 +70,8 @@
         "yes",
         "no",
         "maybe"
-      ]
+      ],
+      "full_logprobs": null
     }
   ]
 }
