@@ -21,13 +21,21 @@ from schema.eval_types import (
     SourceMetadata
 )
 
-from eval_converters.common.adapter import BaseEvaluationAdapter, SupportedLibrary
+from eval_converters.common.adapter import AdapterMetadata, BaseEvaluationAdapter, SupportedLibrary
 from eval_converters.common.error import AdapterError
 
 class InspectAIAdapter(BaseEvaluationAdapter):
     """
     Adapter for transforming evaluation outputs from the Inspect AI library into the unified schema format.
     """
+
+    @property
+    def metadata(self) -> AdapterMetadata:
+        return AdapterMetadata(
+			name="InspectAdapter",
+			version="0.0.1",
+			description="Adapter for transforming HELM evaluation outputs to unified schema format"
+		)
 
     @property
     def supported_library(self) -> SupportedLibrary:
