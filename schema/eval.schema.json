@@ -27,6 +27,7 @@
             "description": "Timestamp for when this record was created - using Unix Epoch time format"
         },
         "source_data": {
+            "description": "Source of dataset used for evaluation. There are two options supported: HuggingFace dataset or url for other data source.",
             "oneOf": [
                 {
                     "type": "array",
@@ -37,7 +38,7 @@
                 },
                 {
                     "type": "object",
-                    "description": "Details about dataset used for evaluation",
+                    "description": "Details about HuggingFace dataset used for evaluation",
                     "required": [
                         "dataset_name"
                     ],
@@ -137,7 +138,7 @@
                 },
                 "id": {
                     "type": "string",
-                    "description": "Model name standarized to HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct)"
+                    "description": "Model name in HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct for models available on HuggingFace or openai/azure/gpt-4o-mini-2024-07-18 for closed API models)"
                 },
                 "developer": {
                     "type": "string",

@@ -1,6 +1,6 @@
 {
   "schema_version": "0.0.1",
-  "evaluation_id": "inspect_ai_openai_azure_gpt-4o-mini_bigbio_pubmed_qa_2025-07-03T16:44:30+02:00",
+  "evaluation_id": "inspect_ai/openai/azure/gpt-4o-mini-2024-07-18/bigbio/pubmed_qa/2025-07-03T16:44:30+02:00",
   "retrieved_timestamp": "2025-07-03T16:44:30+02:00",
   "source_data": {
     "dataset_name": "pubmed_qa",
@@ -23,7 +23,7 @@
     "evaluator_relationship": "other"
   },
   "model_info": {
-    "name": "openai/azure/gpt-4o-mini",
+    "name": "openai/azure/gpt-4o-mini-2024-07-18",
     "developer": "openai",
     "inference_platform": "openai/azure"
   },

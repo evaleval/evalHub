@@ -74,8 +74,6 @@ class InspectAIAdapter(BaseEvaluationAdapter):
 
         retrieved_timestamp = eval_stats.started_at or eval_spec.created
         
-        evaluation_id = f'inspect_ai/{eval_spec.model}/{eval_spec.dataset.name}/{retrieved_timestamp}'
-
         source_data = SourceData(
             dataset_name=eval_spec.dataset.name.split('/')[-1],
             hf_repo=eval_spec.dataset.location,
@@ -88,8 +86,20 @@ class InspectAIAdapter(BaseEvaluationAdapter):
             evaluation_source_type=EvaluationSourceType.evaluation_platform
         )
 
+        model_path = eval_spec.model
+        if raw_data.samples:
+            model_name = raw_data.samples[0].output.model
+            model_path_parts = model_path.split('/')
+
+            if model_path_parts[-1] in model_name:
+                model_path_parts[-1] = model_name
+
+            model_path = '/'.join(model_path_parts)
+
+        self._check_if_model_is_on_huggingface(model_path)
+
         model_info = ModelInfo(
-            name=eval_spec.model,
+            name=model_path,
             developer=eval_spec.model.split('/')[0],
             inference_platform="/".join(eval_spec.model.split('/')[:-1])
         )
@@ -137,9 +147,11 @@ class InspectAIAdapter(BaseEvaluationAdapter):
                 )
             )
 
+        evaluation_id = f'inspect_ai/{model_path}/{eval_spec.dataset.name}/{retrieved_timestamp}'
+
         return EvaluationLog(
             schema_version=SCHEMA_VERSION,
-            evaluation_id=evaluation_id.replace('/', '_'),
+            evaluation_id=evaluation_id,
             retrieved_timestamp=retrieved_timestamp,
             source_data=source_data,
             evaluation_source=evaluation_source,
