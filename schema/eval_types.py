@@ -2,6 +2,7 @@
 #   filename:  eval.schema.json
 #   timestamp: 2025-10-20T21:27:38+00:00
 
+
 from __future__ import annotations
 
 from enum import Enum
@@ -66,7 +67,7 @@ class ModelInfo(BaseModel):
     name: str = Field(..., description='Model name provided by evaluation source')
     id: str = Field(
         ...,
-        description='Model name standarized to HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct)',
+        description='Model name in HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct for models available on HuggingFace or openai/azure/gpt-4o-mini-2024-07-18 for closed API models)',
     )
     developer: Optional[str] = Field(
         None, description="Name of organization that provides the model (e.g. 'OpenAI')"
@@ -163,7 +164,10 @@ class EvaluationLog(BaseModel):
     retrieved_timestamp: str = Field(
         ..., description='Timestamp for when this record was created'
     )
-    source_data: Union[List[str], SourceData]
+    source_data: Union[List[str], SourceData] = Field(
+        ...,
+        description='Source of dataset used for evaluation. There are two options supported: HuggingFace dataset or url for other data source.',
+    )
     evaluation_source: EvaluationSource = Field(
         ...,
         description='Details about evaluation origin. There are options that evaluations come from leaderboards (e.g. Live Code Bench Pro) or evaluation platforms (e.g. lm-eval, inspect ai, HELM...).',

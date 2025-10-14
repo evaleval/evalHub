@@ -50,14 +50,10 @@ class InspectEvalLogConverter:
 
     def save_to_file(self, unified_eval_log: EvaluationLog, output_filename: str) -> bool:
         try:
-            # data = unified_eval_log.model_dump()
             json_str = unified_eval_log.model_dump_json(indent=2)
 
             with open(f'{self.output_dir}/{output_filename}', 'w') as json_file:
                 json_file.write(json_str)
-            # json_str = json.dumps(data, indent=2)
-            # with open(f'{self.output_dir}/{output_filename}', 'w') as json_file:
-            #     json.dump(json_str, json_file)
 
             print(f'Unified eval log was successfully saved to {output_filename} file.')
         except Exception as e:
@@ -86,7 +82,7 @@ if __name__ == '__main__':
 
     unified_output: EvaluationLog = inspect_converter.convert_to_unified_schema(source_metadata)
     if unified_output:
-        output_filename = f'{str(unified_output.evaluation_id)}.json'
+        output_filename = f'{str(unified_output.evaluation_id).replace('/', '_')}.json'
         inspect_converter.save_to_file(unified_output, output_filename)
     else:
         print("Missing unified schema result!")
