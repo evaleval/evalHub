@@ -91,12 +91,17 @@
             "type": "object",
             "description": "Complete model specification including basic information, technical configuration and inference settings",
             "required": [
-                    "name"
+                "name",
+                "id"
             ],
             "properties": {
                 "name": {
                     "type": "string",
-                    "description": "Model name in HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct)"
+                    "description": "Model name provided by evaluation source"
+                },
+                "id": {
+                    "type": "string",
+                    "description": "Model name standarized to HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct)"
                 },
                 "developer": {
                     "type": "string",
