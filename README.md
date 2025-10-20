@@ -18,7 +18,13 @@ uv sync
 ## Scripts
 
 ### Inspect
-We can convert Inspect evaluation log into unified schema via eval_converters/inspect/converter.py. Conversion for example data can be generated via below script: 
+Convert eval log from Inspect AI into json format with following command:
+
+```bash
+uv run inspect log convert path_to_eval_file_generated_by_inspect --to json --output-dir inspect_json
+```
+
+Then we can convert Inspect evaluation log into unified schema via eval_converters/inspect/converter.py. Conversion for example data can be generated via below script: 
 
 ```bash
 uv run python3 -m eval_converters.inspect.converter
