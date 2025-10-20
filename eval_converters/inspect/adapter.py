@@ -137,10 +137,10 @@ class InspectAIAdapter(BaseEvaluationAdapter):
                 response = sample.scores.get('choice').answer
             else:
                 response = sample.output.choices[0].message.content
-            
+
             detailed_evaluation_results_per_samples.append(
                 DetailedEvaluationResultsPerSample(
-                    sample_id=sample.id,
+                    sample_id=str(sample.id),
                     input=sample.input,
                     ground_truth=sample.target,
                     response=response,

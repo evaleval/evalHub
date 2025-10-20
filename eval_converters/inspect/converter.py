@@ -18,7 +18,7 @@ def parse_args():
 
     parser.add_argument('--log_path', type=str, default='tests/data/inspect/data.json')
     parser.add_argument('--huggingface_dataset', type=str)
-    parser.add_argument('--output_dir', type=str, default='eval_converters/inspect')
+    parser.add_argument('--output_dir', type=str, default='tests/data/inspect')
     parser.add_argument('--source_organization_name', type=str, default='Unknown', help='Orgnization which pushed evaluation to the evalHub.')
     parser.add_argument('--evaluator_relationship', type=str, default='other', help='Relationship of evaluation author to the model', choices=['first_party', 'third_party', 'collaborative', 'other'])
     parser.add_argument('--source_organization_url', type=str, default=None)
