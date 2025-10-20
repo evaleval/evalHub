@@ -9,7 +9,7 @@ from typing import Dict, List, Literal, Optional, Union
 
 from schema import SCHEMA_VERSION
 from schema.eval_types import (
-    DetailedEvaluationResult,
+    DetailedEvaluationResultsPerSample,
     EvaluationLog,
     EvaluationResult,
     EvaluationSource,
@@ -87,19 +87,20 @@ class InspectAIAdapter(BaseEvaluationAdapter):
         )
 
         model_path = eval_spec.model
+        self._check_if_model_is_on_huggingface(model_path)
+
         if raw_data.samples:
-            model_name = raw_data.samples[0].output.model
+            detailed_model_name = raw_data.samples[0].output.model
             model_path_parts = model_path.split('/')
 
-            if model_path_parts[-1] in model_name:
-                model_path_parts[-1] = model_name
+            if model_path_parts[-1] in detailed_model_name:
+                model_path_parts[-1] = detailed_model_name
 
             model_path = '/'.join(model_path_parts)
 
-        self._check_if_model_is_on_huggingface(model_path)
-
         model_info = ModelInfo(
             name=model_path,
+            id=model_path,
             developer=eval_spec.model.split('/')[0],
             inference_platform="/".join(eval_spec.model.split('/')[:-1])
         )
@@ -130,15 +131,15 @@ class InspectAIAdapter(BaseEvaluationAdapter):
                         generation_config=generation_config
                     ))
 
-        detailed_evaluation_results = []
+        detailed_evaluation_results_per_samples = []
         for sample in raw_data.samples:
             if sample.scores:
                 response = sample.scores.get('choice').answer
             else:
                 response = sample.output.choices[0].message.content
             
-            detailed_evaluation_results.append(
-                DetailedEvaluationResult(
+            detailed_evaluation_results_per_samples.append(
+                DetailedEvaluationResultsPerSample(
                     sample_id=sample.id,
                     input=sample.input,
                     ground_truth=sample.target,
@@ -158,7 +159,7 @@ class InspectAIAdapter(BaseEvaluationAdapter):
             source_metadata=source_metadata,
             model_info=model_info,
             evaluation_results=evaluation_results,
-            detailed_evaluation_results=detailed_evaluation_results
+            detailed_evaluation_results_per_samples=detailed_evaluation_results_per_samples
         )
         
     def _load_file(self, file_path) -> EvalLog:
