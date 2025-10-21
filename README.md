@@ -18,7 +18,7 @@ uv sync
 ## Scripts
 
 ### Inspect
-Convert eval log from Inspect AI into json format with following command:
+Convert eval log from Inspect AI into json format with following command (if needed):
 
 ```bash
 uv run inspect log convert path_to_eval_file_generated_by_inspect --to json --output-dir inspect_json
@@ -52,4 +52,12 @@ options:
                         Relationship of evaluation author to the model
   --source_organization_url SOURCE_ORGANIZATION_URL
   --source_organization_logo_url SOURCE_ORGANIZATION_LOGO_URL
+```
+
+## Tests
+
+Run below script to perform unit tests for all evaluation platforms.
+
+```bash
+uv run pytest -s
 ```

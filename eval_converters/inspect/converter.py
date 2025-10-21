@@ -45,7 +45,7 @@ class InspectEvalLogConverter:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def convert_to_unified_schema(self, source_metadata: SourceMetadata) -> EvaluationLog:
+    def convert_to_unified_schema(self, source_metadata: SourceMetadata = None) -> EvaluationLog:
         return InspectAIAdapter().transform_from_file(self.log_path, source_metadata=source_metadata)
 
     def save_to_file(self, unified_eval_log: EvaluationLog, output_filename: str) -> bool:
