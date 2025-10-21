@@ -625,7 +625,7 @@ wheels = [
 [[package]]
 name = "evalcard-infrastructure"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "crfm-helm" },
     { name = "dacite" },
