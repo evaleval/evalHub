@@ -1,8 +1,7 @@
 import os
 import wget
 import json
-from typing import List, Dict, Sequence, Optional, Any
-import tempfile
+from typing import List, Dict
 from helm.benchmark.metrics.metric import PerInstanceStats
 from helm.benchmark.presentation.schema import Schema, read_schema
 from helm.benchmark.adaptation.scenario_state import ScenarioState

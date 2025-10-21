@@ -2,11 +2,9 @@ from __future__ import annotations
 from argparse import ArgumentParser
 import json
 from enum import Enum
-from pydantic_core.core_schema import model_schema
 from pathlib import Path
 
 from eval_converters.inspect.adapter import InspectAIAdapter
-from schema.eval_types import EvaluationLog
 from schema.eval_types import (
     EvaluatorRelationship,
     EvaluationLog,
