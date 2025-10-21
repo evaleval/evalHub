@@ -60,4 +60,5 @@ Run below script to perform unit tests for all evaluation platforms.
 
 ```bash
 uv run pytest -s
+uv run ruff check 
 ```

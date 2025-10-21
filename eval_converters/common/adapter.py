@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from enum import Enum
-from huggingface_hub import model_info, HfApi
+from huggingface_hub import model_info
 from schema.eval_types import EvaluationLog
 from typing import Any, List, Union
 from pathlib import Path
@@ -179,5 +179,6 @@ class BaseEvaluationAdapter(ABC):
     def _check_if_model_is_on_huggingface(self, model_path):
         try:
             info = model_info(model_path)
-        except Exception as e:
+            return info
+        except Exception:
             self.logger.warning(f"Model '{model_path}' not found on Hugging Face.")

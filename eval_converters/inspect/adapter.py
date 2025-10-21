@@ -1,11 +1,9 @@
 import os
 
-from typing import List
 from inspect_ai.log import EvalLog, EvalSpec, EvalStats, read_eval_log
 
-from dacite import from_dict
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Union
+from typing import List, Union
 
 from schema import SCHEMA_VERSION
 from schema.eval_types import (

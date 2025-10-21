@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 from eval_converters.inspect.adapter import InspectAIAdapter
