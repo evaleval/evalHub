@@ -15,6 +15,7 @@ dependencies = [
     "pydantic>=2.11.7",
     "requests>=2.32.4",
     "transformers>=4.53.1",
+    "wget>=3.2",
 ]
 
 [project.optional-dependencies]
@@ -30,3 +31,6 @@ dev = [
 [tool.setuptools.packages.find]
 include = ["helm*", "schema*", "common*", "config*", "eval_converters*"]
 exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

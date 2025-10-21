@@ -637,6 +637,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "requests" },
     { name = "transformers" },
+    { name = "wget" },
 ]
 
 [package.optional-dependencies]
@@ -666,6 +667,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.2" },
     { name = "transformers", specifier = ">=4.53.1" },
+    { name = "wget", specifier = ">=3.2" },
     { name = "wget", marker = "extra == 'dev'", specifier = ">=3.2" },
 ]
 provides-extras = ["dev"]

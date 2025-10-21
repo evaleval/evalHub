@@ -23,6 +23,7 @@ from schema.eval_types import (
 
 from eval_converters.common.adapter import AdapterMetadata, BaseEvaluationAdapter, SupportedLibrary
 from eval_converters.common.error import AdapterError
+from eval_converters.common.utils import convert_timestamp_to_unix_format
 
 class InspectAIAdapter(BaseEvaluationAdapter):
     """
@@ -49,30 +50,20 @@ class InspectAIAdapter(BaseEvaluationAdapter):
             raise FileNotFoundError(f'File path {file_path} does not exists!')
         
         try:
-            file_path = Path(file_path)
+            file_path = Path(file_path) if isinstance(file_path, str) else file_path
             eval_log: EvalLog = self._load_file(file_path)
             return self.transform(eval_log, source_metadata)
         except AdapterError as e:
             raise e
         except Exception as e:
             raise AdapterError(f"Failed to load file {file_path}: {str(e)} for InspectAIAdapter")
-    
-    def _get_score(self, response: str, ground_truth: str, metric_name: str) -> float:
-        if metric_name.strip().lower() == 'accuracy':
-            score = float(response.strip().lower() == ground_truth.strip().lower())
-            
-            if not score:
-                score = float(response.endswith(ground_truth))
-            
-            return score
-        else:
-            raise NotImplemented('Metric other than accuracy do not supported at this moment.')
 
     def _transform_single(self, raw_data: EvalLog, source_metadata: SourceMetadata) -> EvaluationLog:
         eval_spec: EvalSpec = raw_data.eval
         eval_stats: EvalStats = raw_data.stats
 
         retrieved_timestamp = eval_stats.started_at or eval_spec.created
+        retrieved_unix_timestamp = convert_timestamp_to_unix_format(retrieved_timestamp)
         
         source_data = SourceData(
             dataset_name=eval_spec.dataset.name.split('/')[-1],
@@ -120,7 +111,7 @@ class InspectAIAdapter(BaseEvaluationAdapter):
                 if metric_info.name != 'stderr':
                     evaluation_results.append(EvaluationResult(
                         evaluation_name=scorer_name,
-                        evaluation_timestamp=eval_stats.completed_at,
+                        evaluation_timestamp=convert_timestamp_to_unix_format(eval_stats.completed_at),
                         metric_config=MetricConfig(
                             evaluation_description=metric_info.name,
                             lower_is_better=False # probably there is no access to such info
@@ -148,12 +139,12 @@ class InspectAIAdapter(BaseEvaluationAdapter):
                 )
             )
 
-        evaluation_id = f'inspect_ai/{model_path}/{eval_spec.dataset.name}/{retrieved_timestamp}'
+        evaluation_id = f'inspect_ai/{model_path}/{eval_spec.dataset.name}/{retrieved_unix_timestamp}'
 
         return EvaluationLog(
             schema_version=SCHEMA_VERSION,
             evaluation_id=evaluation_id,
-            retrieved_timestamp=retrieved_timestamp,
+            retrieved_timestamp=retrieved_unix_timestamp,
             source_data=source_data,
             evaluation_source=evaluation_source,
             source_metadata=source_metadata,
