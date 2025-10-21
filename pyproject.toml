@@ -34,3 +34,6 @@ exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[tool.uv]
+package = true
