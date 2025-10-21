@@ -1,8 +1,7 @@
 import os
 import wget
 import json
-from typing import List, Dict, Sequence, Optional, Any
-import tempfile
+from typing import List, Dict
 from helm.benchmark.metrics.metric import PerInstanceStats
 from helm.benchmark.presentation.schema import Schema, read_schema
 from helm.benchmark.adaptation.scenario_state import ScenarioState
@@ -173,7 +172,7 @@ class HELMAdapter(BaseEvaluationAdapter):
 					context_window = 1
 		
 		except Exception as e:
-			print(f"Error getting context window: {e}")
+			self.logger.error(f"Error getting context window: {e}")
 			context_window = 1
 
 		configuration = Configuration(
@@ -184,7 +183,7 @@ class HELMAdapter(BaseEvaluationAdapter):
 		try:
 			precision, method = infer_quantization(adapter_spec.model)
 		except Exception as e:
-			print(f"Error getting quantization: {e}")
+			self.logger.warning(f"Error getting quantization: {e}")
 			precision = BitPrecision.none
 			method = Method.None_
 
@@ -271,7 +270,7 @@ class HELMAdapter(BaseEvaluationAdapter):
 				score = instance_scores[request_state.instance.id]
 				
 			except Exception as e:
-				print(f"Error getting instance scores: {e}")
+				self.logger.warning(f"Error getting instance scores: {e}")
 				score = 0.0
 			
 			evaluation = Evaluation(
@@ -361,7 +360,7 @@ class HELMAdapter(BaseEvaluationAdapter):
 					context_window = 1
 		
 		except Exception as e:
-			print(f"Error getting context window: {e}")
+			self.logger.warning(f"Error getting context window: {e}")
 			context_window = 1
 
 		configuration = Configuration(
@@ -372,7 +371,7 @@ class HELMAdapter(BaseEvaluationAdapter):
 		try:
 			precision, method = infer_quantization(adapter_spec.model)
 		except Exception as e:
-			print(f"Error getting quantization: {e}")
+			self.logger.warning(f"Error getting quantization: {e}")
 			precision = BitPrecision.none
 			method = Method.None_
 
@@ -479,7 +478,7 @@ class HELMAdapter(BaseEvaluationAdapter):
 							break
 
 			except Exception as e:
-				print(f"Error getting instance scores: {e}")
+				self.logger.warning(f"Error getting instance scores: {e}")
 				instance_scores = {}
 
 			score = instance_scores.get(request_state.instance.id, 0.0)

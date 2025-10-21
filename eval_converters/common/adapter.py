@@ -2,12 +2,14 @@ import logging
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from enum import Enum
-from schema.eval_types import EvaluationResult
+from huggingface_hub import model_info
+from schema.eval_types import EvaluationLog
 from typing import Any, List, Union
 from pathlib import Path
 import json
 
 from eval_converters.common.error import AdapterError, TransformationError
+from schema.eval_types import SourceMetadata
 
 @dataclass
 class AdapterMetadata:
@@ -58,7 +60,7 @@ class BaseEvaluationAdapter(ABC):
         pass
     
     @abstractmethod
-    def _transform_single(self, raw_data: Any) -> EvaluationResult:
+    def _transform_single(self, raw_data: Any, source_metadata: SourceMetadata) -> EvaluationLog:
         """
         Transform a single evaluation record.
         
@@ -66,14 +68,14 @@ class BaseEvaluationAdapter(ABC):
             raw_data: Single evaluation record in library-specific format
             
         Returns:
-            EvaluationResult in unified schema format
+            EvaluationLog in unified schema format
             
         Raises:
             TransformationError: If transformation fails
         """
         pass
     
-    def transform(self, data: Any) -> Union[EvaluationResult, List[EvaluationResult]]:
+    def transform(self, data: Any, source_metadata: SourceMetadata) -> Union[EvaluationLog, List[EvaluationLog]]:
         """
         Transform evaluation data to unified schema format.
         
@@ -89,18 +91,18 @@ class BaseEvaluationAdapter(ABC):
                 results = []
                 for i, item in enumerate(data):
                     try:
-                        result = self._transform_single(item)
+                        result = self._transform_single(item, source_metadata)
                         results.append(result)
                     except Exception as e:
                         self._handle_transformation_error(e, f"item {i}")
                 return results
             else:
-                return self._transform_single(data)
+                return self._transform_single(data, source_metadata)
                 
         except Exception as e:
             self._handle_transformation_error(e, "data transformation")
             
-    def transform_from_file(self, file_path: Union[str, Path]) -> Union[EvaluationResult, List[EvaluationResult]]:
+    def transform_from_file(self, file_path: Union[str, Path], source_metadata: SourceMetadata) -> Union[EvaluationLog, List[EvaluationLog]]:
         """
         Load and transform evaluation data from file.
         
@@ -117,12 +119,12 @@ class BaseEvaluationAdapter(ABC):
         
         try:
             data = self._load_file(file_path)
-            return self.transform(data)
+            return self.transform(data, source_metadata)
         except Exception as e:
             raise AdapterError(f"Failed to load file {file_path}: {str(e)}")
         
     @abstractmethod
-    def transform_from_directory(self, dir_path: Union[str, Path]) -> Union[EvaluationResult, List[EvaluationResult]]:
+    def transform_from_directory(self, dir_path: Union[str, Path]) -> Union[EvaluationLog, List[EvaluationLog]]:
         """
         Load and transform evaluation data from all files in a directory.
         
@@ -173,3 +175,10 @@ class BaseEvaluationAdapter(ABC):
             raise TransformationError(error_msg) from error
         else:
             self.logger.warning(error_msg)
+
+    def _check_if_model_is_on_huggingface(self, model_path):
+        try:
+            info = model_info(model_path)
+            return info
+        except Exception:
+            self.logger.warning(f"Model '{model_path}' not found on Hugging Face.")
