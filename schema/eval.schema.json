@@ -20,11 +20,11 @@
         },
         "evaluation_id": {
             "type": "string",
-            "description": "Unique identifier for this specific evaluation run. Use org_name/eval_name/retrieved_timestamp format"
+            "description": "Unique identifier for this specific evaluation run. Use eval_name/model_id/retrieved_timestamp format"
         },
         "retrieved_timestamp": {
             "type": "string",
-            "description": "Timestamp for when this record was created"
+            "description": "Timestamp for when this record was created - using Unix Epoch time format"
         },
         "source_data": {
             "type": "array",
@@ -109,7 +109,11 @@
                 },
                 "inference_platform": {
                     "type": "string",
-                    "description": "Description of platform used to run the evaluations (e.g. local machine, Bedrock)"
+                    "description": "Name of inference platform which provides an access to models by API to run the evaluations or provides models weights to run them locally (e.g. HuggingFace, Bedrock, Together AI)"
+                },
+                "inference_engine": {
+                    "type": "string",
+                    "description": "Name of inference engine which provides an access to optimized models to use them for local evaluations (e.g. vLLM, Ollama)."
                 }
             }
         },
