@@ -24,9 +24,10 @@
   },
   "model_info": {
     "name": "openai/azure/gpt-4o-mini-2024-07-18",
-    "id": "openai/azure/gpt-4o-mini-2024-07-18",
+    "id": "openai/gpt-4o-mini-2024-07-18",
     "developer": "openai",
-    "inference_platform": "openai/azure"
+    "inference_platform": "azure",
+    "inference_engine": null
   },
   "evaluation_results": [
     {

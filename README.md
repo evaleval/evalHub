@@ -15,10 +15,12 @@ This repository provides a unified and extensible framework for running and orga
 uv sync
 ```
 
-## Scripts
+## Automatic Evaluation Conversion Scripts
+
+We are supporting following evaluation platforms for automatic converting their evaluations into our unified schema.
 
 ### Inspect
-Convert eval log from Inspect AI into json format with following command (if needed):
+Convert eval log from Inspect AI into json format with following command:
 
 ```bash
 uv run inspect log convert path_to_eval_file_generated_by_inspect --to json --output-dir inspect_json
@@ -30,7 +32,14 @@ Then we can convert Inspect evaluation log into unified schema via eval_converte
 uv run python3 -m eval_converters.inspect.converter
 ```
 
-Documentation for conversion of your own Inspect evaluation log into unified is available below:
+for example:
+
+```bash
+uv run python3 -m eval_converters.inspect.converter --log_path tests/data/inspect/data_arc_qwen.json
+```
+
+
+Full manual for conversion of your own Inspect evaluation log into unified is available below:
 
 ```bash
 usage: converter.py [-h] [--log_path LOG_PATH]

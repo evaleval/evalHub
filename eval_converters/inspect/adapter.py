@@ -22,6 +22,7 @@ from schema.eval_types import (
 from eval_converters.common.adapter import AdapterMetadata, BaseEvaluationAdapter, SupportedLibrary
 from eval_converters.common.error import AdapterError
 from eval_converters.common.utils import convert_timestamp_to_unix_format
+from eval_converters.inspect.utils import extract_model_info_from_model_path
 
 class InspectAIAdapter(BaseEvaluationAdapter):
     """
@@ -87,12 +88,7 @@ class InspectAIAdapter(BaseEvaluationAdapter):
 
             model_path = '/'.join(model_path_parts)
 
-        model_info = ModelInfo(
-            name=model_path,
-            id=model_path,
-            developer=eval_spec.model.split('/')[0],
-            inference_platform="/".join(eval_spec.model.split('/')[:-1])
-        )
+        model_info: ModelInfo = extract_model_info_from_model_path(model_path)
 
         results = raw_data.results
         evaluation_results = []

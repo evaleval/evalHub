@@ -25,9 +25,10 @@
   },
   "model_info": {
     "name": "ollama/qwen2.5:0.5b",
-    "id": "ollama/qwen2.5:0.5b",
+    "id": "ollama/qwen2.5-0.5b",
     "developer": "ollama",
-    "inference_platform": "ollama"
+    "inference_platform": null,
+    "inference_engine": "ollama"
   },
   "evaluation_results": [
     {

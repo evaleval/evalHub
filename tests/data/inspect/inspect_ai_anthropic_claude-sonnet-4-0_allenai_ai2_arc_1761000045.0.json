@@ -29,7 +29,8 @@
     "name": "anthropic/claude-sonnet-4-0",
     "id": "anthropic/claude-sonnet-4-0",
     "developer": "anthropic",
-    "inference_platform": "anthropic"
+    "inference_platform": "anthropic",
+    "inference_engine": null
   },
   "evaluation_results": [
     {
