@@ -41,7 +41,7 @@ def test_pubmedqa_eval():
     assert converted_eval.model_info.id == 'openai/gpt-4o-mini-2024-07-18'
     assert converted_eval.model_info.developer == 'openai'
     assert converted_eval.model_info.inference_platform == 'azure'
-    assert converted_eval.model_info.inference_engine == None
+    assert converted_eval.model_info.inference_engine is None
 
     results = converted_eval.evaluation_results
     assert results[0].evaluation_name == 'choice'
@@ -75,7 +75,7 @@ def test_arc_sonnet_eval():
     assert converted_eval.model_info.id == 'anthropic/claude-sonnet-4-0'
     assert converted_eval.model_info.developer == 'anthropic'
     assert converted_eval.model_info.inference_platform == 'anthropic'
-    assert converted_eval.model_info.inference_engine == None
+    assert converted_eval.model_info.inference_engine is None
 
     results = converted_eval.evaluation_results
     assert results[0].evaluation_name == 'choice'
@@ -108,7 +108,7 @@ def test_arc_qwen_eval():
     assert converted_eval.model_info.name == 'ollama/qwen2.5:0.5b'
     assert converted_eval.model_info.id == 'ollama/qwen2.5-0.5b'
     assert converted_eval.model_info.developer == 'ollama'
-    assert converted_eval.model_info.inference_platform == None
+    assert converted_eval.model_info.inference_platform is None
     assert converted_eval.model_info.inference_engine == 'ollama'
 
     results = converted_eval.evaluation_results
