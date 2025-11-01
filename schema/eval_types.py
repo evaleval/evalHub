@@ -2,12 +2,28 @@
 #   filename:  eval.schema.json
 #   timestamp: 2025-10-29T19:49:55+00:00
 
+
+
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
+
+
+class SourceData(BaseModel):
+    dataset_name: str = Field(..., description='Name of the source dataset')
+    hf_repo: Optional[str] = Field(
+        None, description='HuggingFace repository identifier'
+    )
+    hf_split: Optional[str] = Field(None, description='One of train, val or test.')
+    samples_number: Optional[int] = Field(
+        None, description='Number of samples in the dataset'
+    )
+    sample_ids: Optional[List[int]] = Field(
+        None, description='Array of sample ids used for evaluation'
+    )
 
 
 class EvaluationSourceType(Enum):
@@ -52,7 +68,7 @@ class ModelInfo(BaseModel):
     name: str = Field(..., description='Model name provided by evaluation source')
     id: str = Field(
         ...,
-        description='Model name standarized to HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct)',
+        description='Model name in HuggingFace format (e.g. meta-llama/Llama-3.1-8B-Instruct for models available on HuggingFace or openai/azure/gpt-4o-mini-2024-07-18 for closed API models)',
     )
     developer: Optional[str] = Field(
         None, description="Name of organization that provides the model (e.g. 'OpenAI')"
@@ -119,6 +135,29 @@ class EvaluationResult(BaseModel):
     generation_config: Optional[Dict[str, Any]] = None
 
 
+class FullLogprob(BaseModel):
+    token_id: float = Field(
+        ..., description='Id of token for which we keep its logprob'
+    )
+    logprob: float = Field(..., description='Log probability of the token')
+    decoded_token: str = Field(
+        ..., description='The decoded string representation of the token'
+    )
+
+
+class DetailedEvaluationResultsPerSample(BaseModel):
+    sample_id: str = Field(..., description='Simple sample ID')
+    input: str = Field(..., description='Raw input for the model')
+    ground_truth: str = Field(..., description='Target reponsse')
+    response: str = Field(..., description='Response from the model')
+    choices: Optional[List[str]] = Field(
+        None, description='Array of possible responses'
+    )
+    full_logprobs: Optional[List[List[FullLogprob]]] = Field(
+        None, description='Full log probabilities generated for this sample'
+    )
+
+
 class EvaluationLog(BaseModel):
     schema_version: str = Field(
         ..., description='Version of the schema used for this evaluation data'
@@ -131,8 +170,9 @@ class EvaluationLog(BaseModel):
         ...,
         description='Timestamp for when this record was created - using Unix Epoch time format',
     )
-    source_data: List[str] = Field(
-        ..., description='URLs for the source of the evaluation data'
+    source_data: Union[List[str], SourceData] = Field(
+        ...,
+        description='Source of dataset used for evaluation. There are two options supported: HuggingFace dataset or url for other data source.',
     )
     evaluation_source: EvaluationSource = Field(
         ...,
@@ -147,4 +187,10 @@ class EvaluationLog(BaseModel):
     )
     evaluation_results: List[EvaluationResult] = Field(
         ..., description='Array of evaluation results'
+    )
+    detailed_evaluation_results_per_samples: Optional[
+        Union[str, List[DetailedEvaluationResultsPerSample]]
+    ] = Field(
+        None,
+        description='Detailed eval results for all individual samples in the evaluation. This can be provided as source link or list of DetailedEvaluationResultsPerSample objects.',
     )

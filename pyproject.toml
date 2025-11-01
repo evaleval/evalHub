@@ -7,12 +7,15 @@ requires-python = ">=3.12"
 dependencies = [
     "crfm-helm>=0.5.6",
     "dacite>=1.9.2",
+    "huggingface-hub>=0.33.2",
+    "inspect-ai>=0.3.140",
     "numpy>=2.3.1",
     "openai>=1.93.0",
     "pandas>=2.3.0",
     "pydantic>=2.11.7",
     "requests>=2.32.4",
     "transformers>=4.53.1",
+    "wget>=3.2",
 ]
 
 [project.optional-dependencies]
@@ -28,3 +31,9 @@ dev = [
 [tool.setuptools.packages.find]
 include = ["helm*", "schema*", "common*", "config*", "eval_converters*"]
 exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.uv]
+package = true

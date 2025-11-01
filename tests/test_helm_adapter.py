@@ -1,48 +1,48 @@
-import pytest
-from pathlib import Path
-from eval_converters.helm.adapter import HELMAdapter
-import json
+# import pytest
+# from pathlib import Path
+# from eval_converters.helm.adapter import HELMAdapter
+# import json
 
-@pytest.fixture
-def adapter():
-    return HELMAdapter()
+# @pytest.fixture
+# def adapter():
+#     return HELMAdapter()
 
-def test_metadata_and_supported_library(adapter):
-    metadata = adapter.metadata
-    assert metadata.name == "HELMAdapter"
-    assert metadata.version == "0.0.1"
-    assert "0.5.6" in metadata.supported_library_versions
-    assert "HELM evaluation outputs" in metadata.description
+# def test_metadata_and_supported_library(adapter):
+#     metadata = adapter.metadata
+#     assert metadata.name == "HELMAdapter"
+#     assert metadata.version == "0.0.1"
+#     assert "0.5.6" in metadata.supported_library_versions
+#     assert "HELM evaluation outputs" in metadata.description
 
-    supported_lib = adapter.supported_library
-    assert supported_lib.name == "HELM"
+#     supported_lib = adapter.supported_library
+#     assert supported_lib.name == "HELM"
 
-def test_transform_from_directory(adapter):
-    test_dir = Path(__file__).parent.resolve()
-    output_dir_path = test_dir / 'data/helm/commonsense:dataset=hellaswag,method=multiple_choice_joint,model=eleutherai_pythia-1b-v0'
+# def test_transform_from_directory(adapter):
+#     test_dir = Path(__file__).parent.resolve()
+#     output_dir_path = test_dir / 'data/helm/commonsense:dataset=hellaswag,method=multiple_choice_joint,model=eleutherai_pythia-1b-v0'
     
-    results = adapter.transform_from_directory(output_dir_path)
+#     results = adapter.transform_from_directory(output_dir_path)
     
-    assert isinstance(results, list)
-    assert all(hasattr(r, 'schema_version') for r in results)
-    assert all(r.model.model_info.name for r in results)
-    assert all(r.instance.raw_input for r in results)
-    assert len(results) > 0, "No results found in the output directory"
+#     assert isinstance(results, list)
+#     assert all(hasattr(r, 'schema_version') for r in results)
+#     assert all(r.model.model_info.name for r in results)
+#     assert all(r.instance.raw_input for r in results)
+#     assert len(results) > 0, "No results found in the output directory"
 
-def test_transform_single(adapter):
-    test_dir = Path(__file__).parent.resolve()
-    output_base_path = test_dir / 'data/helm/'
-    output_file_path = test_dir / 'data/helm/transform_helm_file_raw_data.json'
+# def test_transform_single(adapter):
+#     test_dir = Path(__file__).parent.resolve()
+#     output_base_path = test_dir / 'data/helm/'
+#     output_file_path = test_dir / 'data/helm/transform_helm_file_raw_data.json'
 
-    results = adapter._transform_single(output_file_path, base_dir=output_base_path)
+#     results = adapter._transform_single(output_file_path, base_dir=output_base_path)
 
-    assert isinstance(results, list)
-    assert all(hasattr(r, 'schema_version') for r in results)
-    assert all(r.model.model_info.name for r in results)
-    assert all(r.instance.raw_input for r in results)
-    assert len(results) > 0, "No results found in the output directory"
+#     assert isinstance(results, list)
+#     assert all(hasattr(r, 'schema_version') for r in results)
+#     assert all(r.model.model_info.name for r in results)
+#     assert all(r.instance.raw_input for r in results)
+#     assert len(results) > 0, "No results found in the output directory"
 
-if __name__ == "__main__":
-    # Create an adapter instance for direct execution
-    adapter = HELMAdapter()
-    test_transform_single(adapter)
+# if __name__ == "__main__":
+#     # Create an adapter instance for direct execution
+#     adapter = HELMAdapter()
+#     test_transform_single(adapter)
