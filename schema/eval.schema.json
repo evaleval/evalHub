@@ -85,7 +85,7 @@
                 "evaluation_source_type": {
                     "type": "string",
                     "enum": [
-                        "leaderboard", 
+                        "leaderboard",
                         "evaluation_platform"
                     ],
                     "description": "Type of evaluation source, e.g., leaderboard or evaluation platform"
@@ -151,6 +151,11 @@
                 "inference_engine": {
                     "type": "string",
                     "description": "Name of inference engine which provides an access to optimized models to use them for local evaluations (e.g. vLLM, Ollama)."
+                },
+                "additional_details": {
+                    "type": "object",
+                    "description": "Additional model configuration parameters",
+                    "additionalProperties": true
                 }
             }
         },
