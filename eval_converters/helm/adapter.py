@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, List, Optional, Union
 from helm.benchmark.metrics.metric import PerInstanceStats
 from helm.benchmark.presentation.schema import Schema, read_schema
-from helm.benchmark.scenarios.scenario import Reference, Scenario
+from helm.benchmark.scenarios.scenario import Reference
 from helm.benchmark.adaptation.scenario_state import AdapterSpec, RequestState, ScenarioState
 from helm.benchmark.metrics.statistic import Stat
 from helm.benchmark.config_registry import register_builtin_configs_from_helm_package
@@ -27,12 +27,6 @@ from schema.eval_types import (
 )
 
 from eval_converters.common.adapter import AdapterMetadata, BaseEvaluationAdapter, SupportedLibrary
-from eval_converters.common.error import AdapterError
-from eval_converters.common.utils import convert_timestamp_to_unix_format
-
-from eval_converters.common.adapter import BaseEvaluationAdapter, AdapterMetadata, SupportedLibrary
-
-from transformers import AutoConfig
 
 # run this just once in your process to initialize the registry
 register_builtin_configs_from_helm_package()

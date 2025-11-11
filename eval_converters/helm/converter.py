@@ -1,10 +1,9 @@
 from __future__ import annotations
 from argparse import ArgumentParser
 import json
-import os
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import List, Union
 
 from eval_converters.helm.adapter import HELMAdapter
 from schema.eval_types import (
