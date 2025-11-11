@@ -63,8 +63,13 @@
                             "type": "array",
                             "description": "Array of sample ids used for evaluation",
                             "items": {
-                                "type": "integer"
+                                "type": ["integer", "string"]
                             }
+                        },
+                        "additional_details": {
+                            "type": "object",
+                            "description": "Additional dataset info parameters",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -350,9 +355,13 @@
                                 "type": "string",
                                 "description": "Raw input for the model"
                             },
+                            "prompt": {
+                                "type": "string",
+                                "description": "Full prompt for the model"
+                            },
                             "ground_truth": {
                                 "type": "string",
-                                "description": "Target reponsse"
+                                "description": "Target response"
                             },
                             "response": {
                                 "type": "string",
