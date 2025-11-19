@@ -126,12 +126,12 @@ class HELMAdapter(BaseEvaluationAdapter):
 			print(f'Error during conversion to unified schema in directory "{dir_path}": {e}')
 			return None
 	
-	def _get_correct_response(self, references: List['Reference']) -> Optional[str]:
+	def _get_correct_response(self, references: List[Reference]) -> Optional[List[str]]:
 		"""Extracts the text of the first reference that has tags."""
-		for ref in references:
-			if ref.tags:
-				return ref.output.text
-		return None
+		return [
+			ref.output.text
+			for ref in references if ref.tags
+		]
 
 	def _extract_detailed_evaluation_info_for_samples(
 		self, request_states: List[RequestState]
@@ -143,23 +143,23 @@ class HELMAdapter(BaseEvaluationAdapter):
 		
 		for state in request_states:
 			references = state.instance.references or []
-			correct_response = self._get_correct_response(references)
+			correct_responses = self._get_correct_response(references)
 
 			ground_truth = None
-			if correct_response:
-				ground_truth = next(
-					(
-						choice 
-						for choice, response in state.output_mapping.items() 
-						if response in correct_response
-					),
-					None
-				)
-
-			choices_list = [
-				f'{choice}. {response}' 
-				for choice, response in state.output_mapping.items()
-			]
+			choices_list = None
+			
+			if state.output_mapping:
+				choices_list = [
+					[choice, response] for choice, response in state.output_mapping.items()
+				]
+				
+				ground_truth = [
+					choice for choice, response in state.output_mapping.items() 
+					if choice in correct_responses or response in correct_responses
+				]
+				
+			elif correct_responses:
+				ground_truth = correct_responses
 			
 			results.append(
 				DetailedEvaluationResultsPerSample(
@@ -230,11 +230,11 @@ class HELMAdapter(BaseEvaluationAdapter):
 
 		source_data = SourceData(
             dataset_name=scenario_dict.get('name'),
-            samples_number=len(request_states),
+            samples_number=len(set(state.instance.id for state in request_states)),#len(request_states),
             sample_ids=[state.instance.id for state in request_states],
 			additional_details={
 				'scenario_name': run_spec.scenario_spec.class_name,
-				'subject': run_spec.scenario_spec.args.get('subject')
+				'scenario_args': run_spec.scenario_spec.args
 			}
         )
 
@@ -256,9 +256,10 @@ class HELMAdapter(BaseEvaluationAdapter):
 		for metric_name in metric_names:
 			metric_config = MetricConfig(
 				evaluation_description=metric_name,
-				lower_is_better=False
+				lower_is_better=False # TODO is not always true, possible to fetch correct value from schema.json
 			)
 
+			# TODO consider to filter out a subset of relevant stats
 			for stat in stats:
 				if not stat.name.name.startswith(metric_name):
 					continue

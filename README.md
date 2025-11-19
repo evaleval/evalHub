@@ -111,6 +111,6 @@ options:
 Run below script to perform unit tests for all evaluation platforms.
 
 ```bash
-uv run pytest -s
+uv run pytest -s --disable-warnings
 uv run ruff check 
 ```

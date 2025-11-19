@@ -360,19 +360,49 @@
                                 "description": "Full prompt for the model"
                             },
                             "ground_truth": {
-                                "type": "string",
-                                "description": "Target response"
+                                "description": "Target response that may include one or multiple correct answers.",
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "array",
+                                        "items": { 
+                                            "type": "string" 
+                                        }
+                                    }
+                                ]
                             },
                             "response": {
                                 "type": "string",
                                 "description": "Response from the model"
                             },
                             "choices": {
-                                "type": "array",
-                                "description": "Array of possible responses",
-                                "items": {
-                                    "type": "string"
-                                }
+                                "description": "Either an array of possible responses (list of strings) or an array of string pairs [choice, response].",
+                                "oneOf": [
+                                    {
+                                        "type": "array",
+                                        "items": { 
+                                            "type": "string" 
+                                        }
+                                    },
+                                    {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "array",
+                                            "items": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "minItems": 2,
+                                            "maxItems": 2
+                                        }
+                                    }
+                                ]
                             },
                             "full_logprobs": {
                                 "type": "array",

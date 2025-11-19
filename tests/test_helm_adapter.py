@@ -1,48 +1,156 @@
-# import pytest
-# from pathlib import Path
-# from eval_converters.helm.adapter import HELMAdapter
-# import json
+from pathlib import Path
 
-# @pytest.fixture
-# def adapter():
-#     return HELMAdapter()
+from eval_converters.helm.adapter import HELMAdapter
+from schema.eval_types import (
+    EvaluationLog, 
+    EvaluatorRelationship,
+    SourceData,
+    SourceMetadata,
 
-# def test_metadata_and_supported_library(adapter):
-#     metadata = adapter.metadata
-#     assert metadata.name == "HELMAdapter"
-#     assert metadata.version == "0.0.1"
-#     assert "0.5.6" in metadata.supported_library_versions
-#     assert "HELM evaluation outputs" in metadata.description
+)
 
-#     supported_lib = adapter.supported_library
-#     assert supported_lib.name == "HELM"
+def _load_eval(adapter, filepath, source_metadata):
+    eval_dirpath = Path(filepath)
+    converted_eval = adapter.transform_from_directory(eval_dirpath, source_metadata=source_metadata)
+    assert isinstance(converted_eval, EvaluationLog)
+    assert isinstance(converted_eval.source_data, SourceData)
 
-# def test_transform_from_directory(adapter):
-#     test_dir = Path(__file__).parent.resolve()
-#     output_dir_path = test_dir / 'data/helm/commonsense:dataset=hellaswag,method=multiple_choice_joint,model=eleutherai_pythia-1b-v0'
+    assert converted_eval.evaluation_source.evaluation_source_name == 'helm'
+    assert converted_eval.evaluation_source.evaluation_source_type.value == 'evaluation_platform'
+
+    return converted_eval
+
+def test_mmlu_eval():
+    adapter = HELMAdapter()
+    source_metadata = SourceMetadata(
+        source_organization_name='TestOrg',
+        evaluator_relationship=EvaluatorRelationship.first_party,
+    )
+
+    converted_eval = _load_eval(adapter, 'tests/data/helm/mmlu:subject=philosophy,method=multiple_choice_joint,model=openai_gpt2', source_metadata)
+
+    assert converted_eval.retrieved_timestamp == '1762354922'
     
-#     results = adapter.transform_from_directory(output_dir_path)
+    assert converted_eval.source_data.dataset_name == 'mmlu'
+    assert converted_eval.source_data.hf_repo is None
+    assert len(converted_eval.source_data.sample_ids) == 10
+
+    assert converted_eval.model_info.name == 'openai/gpt2'
+    assert converted_eval.model_info.id == 'openai/gpt2'
+    assert converted_eval.model_info.developer == 'openai'
+    assert converted_eval.model_info.inference_platform == 'huggingface'
+    assert converted_eval.model_info.inference_engine is None
+
+    results = converted_eval.evaluation_results
+    metric_names = ['exact_match', 'quasi_exact_match', 'prefix_exact_match', 'quasi_prefix_exact_match']
     
-#     assert isinstance(results, list)
-#     assert all(hasattr(r, 'schema_version') for r in results)
-#     assert all(r.model.model_info.name for r in results)
-#     assert all(r.instance.raw_input for r in results)
-#     assert len(results) > 0, "No results found in the output directory"
+    for result in results:
+        assert results[0].evaluation_name == 'multiple_choice_joint'
+        assert results[0].metric_config.evaluation_description in metric_names
+        # assert results[0].score_details.score == 1.0
 
-# def test_transform_single(adapter):
-#     test_dir = Path(__file__).parent.resolve()
-#     output_base_path = test_dir / 'data/helm/'
-#     output_file_path = test_dir / 'data/helm/transform_helm_file_raw_data.json'
+    results_per_sample = converted_eval.detailed_evaluation_results_per_samples
+    sample_ids = [sample.sample_id for sample in results_per_sample]
 
-#     results = adapter._transform_single(output_file_path, base_dir=output_base_path)
+    assert sorted(sample_ids) == ['id105', 'id11', 'id131', 'id147', 'id222', 'id259', 'id291', 'id344', 'id59', 'id65']
+    assert isinstance(results_per_sample[0].ground_truth, list)
+    assert results_per_sample[0].ground_truth[0] == 'C'
+    assert results_per_sample[0].response == 'D'
+    assert isinstance(results_per_sample[0].choices, list)
+    choices = sorted([choice for choice, resp in results_per_sample[0].choices])
+    responses = sorted([resp for choice, resp in results_per_sample[0].choices])
+    assert choices == ['A', 'B', 'C', 'D']
+    assert responses == [
+        'external meaning',
+        "god's plan",
+        'internalmeaning',
+        'meaning in an afterlife'
+    ]
 
-#     assert isinstance(results, list)
-#     assert all(hasattr(r, 'schema_version') for r in results)
-#     assert all(r.model.model_info.name for r in results)
-#     assert all(r.instance.raw_input for r in results)
-#     assert len(results) > 0, "No results found in the output directory"
+def test_hellswag_eval():
+    adapter = HELMAdapter()
+    source_metadata = SourceMetadata(
+        source_organization_name='TestOrg',
+        evaluator_relationship=EvaluatorRelationship.first_party,
+    )
 
-# if __name__ == "__main__":
-#     # Create an adapter instance for direct execution
-#     adapter = HELMAdapter()
-#     test_transform_single(adapter)
+    converted_eval = _load_eval(adapter, 'tests/data/helm/commonsense:dataset=hellaswag,method=multiple_choice_joint,model=eleutherai_pythia-1b-v0', source_metadata)
+
+    assert converted_eval.retrieved_timestamp == '1751729998'
+    
+    assert converted_eval.source_data.dataset_name == 'hellaswag'
+    assert converted_eval.source_data.hf_repo is None
+    assert len(converted_eval.source_data.sample_ids) == 10
+
+    assert converted_eval.model_info.name == 'eleutherai/pythia-1b-v0'
+    assert converted_eval.model_info.id == 'eleutherai/pythia-1b-v0'
+    assert converted_eval.model_info.developer == 'eleutherai'
+    assert converted_eval.model_info.inference_platform == 'huggingface'
+    assert converted_eval.model_info.inference_engine is None
+
+    results = converted_eval.evaluation_results
+    metric_names = ['exact_match', 'quasi_exact_match', 'prefix_exact_match', 'quasi_prefix_exact_match']
+    
+    assert results[0].score_details.score == 0.3
+    for result in results:
+        assert results[0].evaluation_name == 'multiple_choice_joint'
+        assert results[0].metric_config.evaluation_description in metric_names
+
+    results_per_sample = converted_eval.detailed_evaluation_results_per_samples
+    sample_ids = [sample.sample_id for sample in results_per_sample]
+
+    assert sorted(sample_ids) == ['id41468', 'id41992', 'id42841', 'id44284', 'id44874', 'id45277', 'id46128', 'id47299', 'id47975', 'id49438']
+    assert isinstance(results_per_sample[0].ground_truth, list)
+    assert results_per_sample[0].ground_truth[0] == 'C'
+    assert results_per_sample[0].response == 'B'
+    assert isinstance(results_per_sample[0].choices, list)
+    choices = sorted([choice for choice, resp in results_per_sample[0].choices])
+    responses = sorted([resp for choice, resp in results_per_sample[0].choices])
+    assert choices == ['A', 'B', 'C', 'D']
+
+    assert responses == [
+        'However, you can also take your color, added color, and texture into account when deciding what to dye, and what you will use it for. [substeps] Consider adding your hair dye to your hair if you have it long or curly.', 
+        "If you're not planning on dying your hair, there are other coloration measures you can take to dye your hair. [step] Photoshop hd darkers work well, but don't lack the style that can be coupled with it.", 
+        'It is important to select the color that represents your hair type when you register your hair color. [substeps] Traditional semi-permanent dyes will generally not be available for hair color, like blow-dryers, curling irons, and appliances.', 
+        "Pick the color that's your favorite, matches your wardrobe best, and/or is most flattering for your eye color and skin tone. Semi-permanent dyes work on all hair colors, but show up brightest on light hair."
+    ]
+
+def test_narrativeqa_eval():
+    adapter = HELMAdapter()
+    source_metadata = SourceMetadata(
+        source_organization_name='TestOrg',
+        evaluator_relationship=EvaluatorRelationship.first_party,
+    )
+
+    converted_eval = _load_eval(adapter, 'tests/data/helm/narrative_qa:model=openai_gpt2', source_metadata)
+
+    assert converted_eval.retrieved_timestamp == '1763479296'
+    
+    assert converted_eval.source_data.dataset_name == 'narrativeqa'
+    assert converted_eval.source_data.hf_repo is None
+    assert len(converted_eval.source_data.sample_ids) == 5
+
+    assert converted_eval.model_info.name == 'openai/gpt2'
+    assert converted_eval.model_info.id == 'openai/gpt2'
+    assert converted_eval.model_info.developer == 'openai'
+    assert converted_eval.model_info.inference_platform == 'huggingface'
+    assert converted_eval.model_info.inference_engine is None
+
+    results = converted_eval.evaluation_results
+    metric_names = ['exact_match', 'quasi_exact_match', 'prefix_exact_match', 'quasi_prefix_exact_match']
+    
+    for result in results:
+        assert results[0].evaluation_name == 'generation'
+        assert results[0].metric_config.evaluation_description in metric_names
+        # assert results[0].score_details.score == 1.0
+
+    results_per_sample = converted_eval.detailed_evaluation_results_per_samples
+    sample_ids = [sample.sample_id for sample in results_per_sample]
+
+    assert sorted(sample_ids) == ['id1123', 'id1332', 'id1340', 'id1413', 'id1514']
+
+    assert isinstance(results_per_sample[0].ground_truth, list)
+    assert sorted(results_per_sample[0].ground_truth) == ['The school Mascot', 'the schools mascot']
+    assert results_per_sample[0].ground_truth[0] == 'The school Mascot'
+    assert results_per_sample[0].response == 'Olive.'
+    assert results_per_sample[0].choices is None
