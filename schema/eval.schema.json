@@ -63,8 +63,13 @@
                             "type": "array",
                             "description": "Array of sample ids used for evaluation",
                             "items": {
-                                "type": "integer"
+                                "type": ["integer", "string"]
                             }
+                        },
+                        "additional_details": {
+                            "type": "object",
+                            "description": "Additional dataset info parameters",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -350,20 +355,54 @@
                                 "type": "string",
                                 "description": "Raw input for the model"
                             },
-                            "ground_truth": {
+                            "prompt": {
                                 "type": "string",
-                                "description": "Target reponsse"
+                                "description": "Full prompt for the model"
+                            },
+                            "ground_truth": {
+                                "description": "Target response that may include one or multiple correct answers.",
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "array",
+                                        "items": { 
+                                            "type": "string" 
+                                        }
+                                    }
+                                ]
                             },
                             "response": {
                                 "type": "string",
                                 "description": "Response from the model"
                             },
                             "choices": {
-                                "type": "array",
-                                "description": "Array of possible responses",
-                                "items": {
-                                    "type": "string"
-                                }
+                                "description": "Either an array of possible responses (list of strings) or an array of string pairs [choice, response].",
+                                "oneOf": [
+                                    {
+                                        "type": "array",
+                                        "items": { 
+                                            "type": "string" 
+                                        }
+                                    },
+                                    {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "array",
+                                            "items": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "string"
+                                                }
+                                            ],
+                                            "minItems": 2,
+                                            "maxItems": 2
+                                        }
+                                    }
+                                ]
                             },
                             "full_logprobs": {
                                 "type": "array",
