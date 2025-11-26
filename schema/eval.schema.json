@@ -264,7 +264,7 @@
                         }
                     },
                     "score_details": {
-                        "type": "string",
+                        "type": "object",
                         "description": "The score for the evaluation and related details",
                         "required": [
                             "score"
