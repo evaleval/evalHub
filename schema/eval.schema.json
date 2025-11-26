@@ -13,6 +13,7 @@
         "model_info",
         "evaluation_results"
     ],
+    "additionalProperties": false,
     "properties": {
         "schema_version": {
             "type": "string",
@@ -264,7 +265,6 @@
                         }
                     },
                     "score_details": {
-                        "type": "object",
                         "description": "The score for the evaluation and related details",
                         "required": [
                             "score"
